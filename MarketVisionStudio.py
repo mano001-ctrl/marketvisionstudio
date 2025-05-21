@@ -47,15 +47,15 @@ def load_fred_series(codes, start, end):
 # --- Tabs ---
 tab = st.selectbox(
     "Select Dashboard Section",
-    ["Portfolio Dashboard", "Rolling Returns Heatmap", "Return on Equity Heatmap", "Strategy Development"]
+    ["Asset Snapshot", "Statistical Insights", "Corporate Metrics Hub", "Strategy Development"]
 )
 
 # --- Sidebar (dynamic) ---
-if tab == "Portfolio Dashboard":
-    #st.header("📊 Simple Portfolio Performance Dashboard")
+if tab == "Asset Snapshot":
+    #st.header("Rudimental Asset Info")
 
     # --- Sidebar Settings ---
-    st.sidebar.header("Settings: Portfolio Dashboard")
+    st.sidebar.header("Settings: Asset Snapshot")
     # 1) Stocks
     stock_list = ['AAPL','MSFT','GOOGL','AMZN','TSLA','META','NVDA','JPM','JNJ','V','TQQQ'] 
     selected_stocks = st.sidebar.multiselect(
@@ -101,8 +101,8 @@ if tab == "Portfolio Dashboard":
         st.stop()
 
 
-elif tab == "Rolling Returns Heatmap":
-    st.sidebar.header("Settings: Rolling Returns Heatmap")
+elif tab == "Statistical Insights":
+    st.sidebar.header("Settings: Statistical Insights")
     rolling_ticker = st.sidebar.text_input("Ticker for rolling heatmap", value="SPY", key="heatmap_ticker")
     rolling_start_date = st.sidebar.date_input("Start date", pd.to_datetime("today") - pd.Timedelta(days=30), key="heatmap_start")
     rolling_end_date = st.sidebar.date_input("End date", pd.to_datetime("today"), key="heatmap_end")
@@ -111,7 +111,7 @@ elif tab == "Rolling Returns Heatmap":
     sector_start = st.sidebar.date_input("Start date for sector heatmap", pd.to_datetime("today") - pd.Timedelta(days=60), key="sector_start")
     sector_end = st.sidebar.date_input("End date for sector heatmap", pd.to_datetime("today"), key="sector_end")
 
-elif tab == "Return on Equity Heatmap":
+elif tab == "Corporate Metrics Hub":
     st.sidebar.header("No settings required for ROE Heatmap.")
 
 elif tab == "Strategy Development":
@@ -119,11 +119,9 @@ elif tab == "Strategy Development":
 
 
 # --- Main Area Content ---
-# --- Tab: Portfolio Dashboard ---
-# --- Tab: Portfolio Dashboard ---
 # --- Main Area Content ---
-if tab == "Portfolio Dashboard":
-    st.header("📊 Simple Portfolio Performance Dashboard")
+if tab == "Asset Snapshot":
+    st.header("Rudimental Asset Information")
 
     if not selected_stocks:
         st.info("Please select at least one stock to display charts.")
@@ -581,18 +579,18 @@ if tab == "Portfolio Dashboard":
 
 
             
-elif tab == "Rolling Returns Heatmap":
-    st.header("📈 Rolling Daily Average Returns Calendar Heatmap")
+elif tab == "Statistical Insights":
+    st.header("Statistical Insights")
 
     # Create two subtabs: one for VRC, one for Statistical Analysis
     chart_choice = st.radio(
         "Select chart to display:",
-        ["VRC", "Momentum Analysis","Reversion Analysis"],
+        ["Returns & Correlation", "Momentum Analysis","Reversion Analysis"],
         horizontal=True,
         key="Trend Statistics"
     )
     #vrc_tab, stat_tab = st.tabs(["VRC", "Statistical Analysis"])
-    if chart_choice == "VRC":
+    if chart_choice == "Returns & Correlation":
         # Load & prepare the data exactly as before
         data = load_prices(rolling_ticker, rolling_start_date, rolling_end_date)
         daily_returns = data.pct_change().dropna() * 100
@@ -1072,8 +1070,8 @@ elif tab == "Rolling Returns Heatmap":
 
 
 
-elif tab == "Return on Equity Heatmap":
-    st.header("🏛️ Company Financial Metrics Dashboard")
+elif tab == "Corporate Metrics Hub":
+    st.header("Corporate Metrics Hub")
 
     # --- Company Selection ---
     largest_30 = [
