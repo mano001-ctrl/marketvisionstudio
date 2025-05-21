@@ -1,0 +1,28 @@
+[
+    {
+      "question": "Which word rhymes with 'ball'?",
+      "options": ["mall", "bed", "cup"],
+      "answer": "mall"
+    },
+    {
+      "question": "What is the first sound in 'dog'?",
+      "options": ["d", "g", "o"],
+      "answer": "d"
+    },
+    {
+      "question": "Which word means 'happy'?",
+      "options": ["sad", "glad", "mad"],
+      "answer": "glad"
+    },
+    {
+      "question": "Choose the correct spelling: t-o-p",
+      "options": ["top", "tep", "tip"],
+      "answer": "top"
+    },
+    {
+      "question": "Which is a noun: run, car, jump?",
+      "options": ["run", "car", "jump"],
+      "answer": "car"
+    }
+  ]
+  

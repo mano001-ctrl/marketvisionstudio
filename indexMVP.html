@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grade 1–2 Learner App</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    .screen { display: none; padding: 20px; }
+    .screen.active { display: block; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+    input { display: block; margin: 10px 0; padding: 8px; width: 200px; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 5px 0; cursor: pointer; }
+    iframe { width: 100%; height: 315px; border: none; }
+    h2 { margin-top: 0; }
+  </style>
+
+  <!-- 1) Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <!-- 2) Your Firebase config & init -->
+  <script>
+    const firebaseConfig = {
+      apiKey:            "AIzaSyASeCvyC7bJF3hGtvommN4cIgG4PwDK3kc",
+      authDomain:        "learningappgateway.firebaseapp.com",
+      databaseURL:       "https://learningappgateway-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId:         "learningappgateway",
+      storageBucket:     "learningappgateway.appspot.com",
+      messagingSenderId: "718132738816",
+      appId:             "1:718132738816:web:b30f1ac79500ad22a3d1e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.database();
+  </script>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen active">
+    <h2>Login</h2>
+    <input type="email"    id="login-email"    placeholder="Email">
+    <input type="password" id="login-password" placeholder="Password">
+    <button id="login-btn">Login</button>
+    <button id="register-btn">Register</button>
+  </div>
+
+  <!-- Home Screen -->
+  <div id="home-screen" class="screen">
+    <h2>Choose Subject</h2>
+    <button class="subject-btn" data-subject="math">Maths</button>
+    <button class="subject-btn" data-subject="english">English</button>
+    <button id="logout-btn">Logout</button>
+  </div>
+
+  <!-- Grade Screen -->
+  <div id="grade-screen" class="screen">
+    <h2 id="subject-title"></h2>
+    <button class="grade-btn" data-grade="1">Grade 1</button>
+    <button class="grade-btn" data-grade="2">Grade 2</button>
+    <button id="back-home-btn">Back</button>
+  </div>
+
+  <!-- Module Screen -->
+  <div id="module-screen" class="screen">
+    <h2 id="module-header"></h2>
+    <ul id="module-list"></ul>
+    <button id="back-grade-btn">Back</button>
+  </div>
+
+  <!-- Video Screen -->
+  <div id="video-screen" class="screen">
+    <h2 id="video-header"></h2>
+    <iframe id="video-iframe" allowfullscreen></iframe>
+    <button id="proceed-quiz-btn">Proceed to Quiz</button>
+    <button id="back-module-btn">Back</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quiz-screen" class="screen">
+    <h2 id="quiz-header"></h2>
+    <form id="quiz-form"></form>
+    <button id="submit-quiz-btn">Submit Quiz</button>
+    <button id="back-video-btn">Back</button>
+  </div>
+
+  <!-- Performance Screen -->
+  <div id="performance-screen" class="screen">
+    <h2>Performance</h2>
+    <ul id="performance-list"></ul>
+    <button id="back-home-btn2">Back</button>
+  </div>
+
+  <!-- 3) Main application logic -->
+  <script>
+    // YouTube IDs mapping
+    const YOUTUBE_IDS = {
+      "math_1_1":   "6Nlan2OO92M",
+      "math_1_2":   "Ju3kQjmcH5g",
+      "math_1_3":   "rPVdItitgIU",
+      "math_1_4":   "Ux_kLd7qAcY",
+      "math_2_1":   "q_yUC1NCFkE",
+      "math_2_2":   "1ACa-NW8-TU",
+      "math_2_3":   "bcOK7pGri1c",
+      "math_2_4":   "eW2dRLyoyds",
+      "english_1_1":"ZhfW6oLzFYI",
+      "english_1_2":"gIZjrcG9pW0",
+      "english_1_3":"AbvySmoKefU",
+      "english_1_4":"avC53wsZiJA",
+      "english_2_1":"B5-y__faQrY",
+      "english_2_2":"kWtMmRZDY-4",
+      "english_2_3":"JaQB4XsZnoU",
+      "english_2_4":"8irI5t3ZLPs"
+    };
+
+    let currentSubject = "";
+    let currentGrade   = "";
+    let currentModule  = "";
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    // Toggle between login/home
+    auth.onAuthStateChanged(user => {
+      showScreen(user ? "home-screen" : "login-screen");
+    });
+
+    // Login
+    document.getElementById("login-btn").addEventListener("click", () => {
+      const email = document.getElementById("login-email").value;
+      const pwd   = document.getElementById("login-password").value;
+      auth.signInWithEmailAndPassword(email, pwd)
+        .catch(err => alert("Login failed: " + err.message));
+    });
+
+    // Register
+    document.getElementById("register-btn").addEventListener("click", () => {
+      const email = document.getElementById("login-email").value;
+      const pwd   = document.getElementById("login-password").value;
+      auth.createUserWithEmailAndPassword(email, pwd)
+        .catch(err => alert("Registration failed: " + err.message));
+    });
+
+    // Logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      auth.signOut();
+    });
+
+    // Subject selection
+    document.querySelectorAll(".subject-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentSubject = btn.dataset.subject;
+        document.getElementById("subject-title").textContent =
+          currentSubject.toUpperCase();
+        showScreen("grade-screen");
+      });
+    });
+    document.getElementById("back-home-btn").addEventListener("click", () => {
+      showScreen("home-screen");
+    });
+
+    // Grade selection
+    document.querySelectorAll(".grade-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentGrade = btn.dataset.grade;
+        document.getElementById("module-header").textContent =
+          `${currentSubject.toUpperCase()} Grade ${currentGrade}`;
+        loadModules();
+        showScreen("module-screen");
+      });
+    });
+    document.getElementById("back-grade-btn").addEventListener("click", () => {
+      showScreen("grade-screen");
+    });
+
+    // Load modules
+    function loadModules() {
+      const list = document.getElementById("module-list");
+      list.innerHTML = "";
+      for (let m = 1; m <= 4; m++) {
+        fetch(`data/${currentSubject}_grade${currentGrade}_module${m}.json`)
+          .then(r => r.json())
+          .then(data => {
+            const li = document.createElement("li");
+            li.textContent   = `${m}. ${data.title}`;
+            li.dataset.module = m;
+            li.addEventListener("click", pickModule);
+            list.appendChild(li);
+          });
+      }
+    }
+
+    // Pick module → video
+    function pickModule() {
+      currentModule = this.dataset.module;
+      document.getElementById("video-header").textContent =
+        `${currentSubject} Grade ${currentGrade} Module ${currentModule}`;
+      document.getElementById("video-iframe").src =
+        `https://www.youtube.com/embed/${YOUTUBE_IDS[`${currentSubject}_${currentGrade}_${currentModule}`]}?rel=0`;
+      showScreen("video-screen");
+    }
+    document.getElementById("back-module-btn").addEventListener("click", () => {
+      showScreen("module-screen");
+    });
+
+    // Proceed to quiz
+    document.getElementById("proceed-quiz-btn").addEventListener("click", () => {
+      loadQuiz();
+      showScreen("quiz-screen");
+    });
+    document.getElementById("back-video-btn").addEventListener("click", () => {
+      showScreen("video-screen");
+    });
+
+    // Load quiz
+    function loadQuiz() {
+      const form = document.getElementById("quiz-form");
+      form.innerHTML = "";
+      fetch(`data/${currentSubject}_grade${currentGrade}_module${currentModule}.json`)
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById("quiz-header").textContent = `Quiz: ${data.title}`;
+          data.questions.forEach((q, i) => {
+            const p = document.createElement("p");
+            p.textContent = q.question;
+            form.appendChild(p);
+            q.options.forEach(opt => {
+              const label = document.createElement("label");
+              label.innerHTML =
+                `<input type="radio" name="q${i}" value="${opt}" required> ${opt}`;
+              form.appendChild(label);
+            });
+          });
+        });
+    }
+
+    // Submit quiz & record
+    document.getElementById("submit-quiz-btn").addEventListener("click", () => {
+      fetch(`data/${currentSubject}_grade${currentGrade}_module${currentModule}.json`)
+        .then(r => r.json())
+        .then(data => {
+          let correct = 0;
+          data.questions.forEach((q, i) => {
+            const ans = document.querySelector(`input[name="q${i}"]:checked`);
+            if (ans && ans.value === q.answer) correct++;
+          });
+          const rec = {
+            subject:   currentSubject,
+            grade:     +currentGrade,
+            module:    +currentModule,
+            correct:   correct,
+            total:     data.questions.length,
+            timestamp: new Date().toISOString()
+          };
+          db.ref(`performance/${auth.currentUser.uid}`).push(rec);
+          loadPerformance();
+          showScreen("performance-screen");
+        });
+    });
+
+    // Load performance
+    function loadPerformance() {
+      db.ref(`performance/${auth.currentUser.uid}`).once("value")
+        .then(snapshot => {
+          const list = document.getElementById("performance-list");
+          list.innerHTML = "";
+          const entries = snapshot.val() || {};
+          Object.values(entries).forEach(rec => {
+            const li = document.createElement("li");
+            li.textContent =
+              `${rec.timestamp.slice(0,19)} — ${rec.subject} G${rec.grade} M${rec.module}: ${rec.correct}/${rec.total}`;
+            list.appendChild(li);
+          });
+        });
+    }
+    document.getElementById("back-home-btn2").addEventListener("click", () => {
+      showScreen("home-screen");
+    });
+  </script>
+
+</body>
+</html>

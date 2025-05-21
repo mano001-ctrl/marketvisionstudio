@@ -1,0 +1,33 @@
+{
+    "module_id": 1,
+    "title": "Phonics & Alphabet",
+    "description": "Learn the sounds and names of the letters A–Z.",
+    "questions": [
+      {
+        "question": "Which letter makes the sound /mmm/?",
+        "options": ["M", "N", "P"],
+        "answer": "M"
+      },
+      {
+        "question": "What comes after the letter D?",
+        "options": ["E", "C", "F"],
+        "answer": "E"
+      },
+      {
+        "question": "Which letter is a vowel?",
+        "options": ["B", "E", "T"],
+        "answer": "E"
+      },
+      {
+        "question": "What letter makes the sound /sss/?",
+        "options": ["C", "S", "Z"],
+        "answer": "S"
+      },
+      {
+        "question": "Which is the first letter of 'dog'?",
+        "options": ["D", "G", "O"],
+        "answer": "D"
+      }
+    ]
+  }
+  

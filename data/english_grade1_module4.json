@@ -1,0 +1,33 @@
+{
+    "module_id": 4,
+    "title": "Prepositions",
+    "description": "Learn words that show position (in, on, under).",
+    "questions": [
+      {
+        "question": "The cat is __ the box.",
+        "options": ["in", "on", "over"],
+        "answer": "in"
+      },
+      {
+        "question": "The book is __ the table.",
+        "options": ["under", "on", "behind"],
+        "answer": "on"
+      },
+      {
+        "question": "The ball is __ the chair.",
+        "options": ["under", "beside", "above"],
+        "answer": "under"
+      },
+      {
+        "question": "The toy is __ the bed.",
+        "options": ["in", "below", "on"],
+        "answer": "on"
+      },
+      {
+        "question": "Place the pencil __ the cup.",
+        "options": ["beside", "inside", "around"],
+        "answer": "inside"
+      }
+    ]
+  }
+  

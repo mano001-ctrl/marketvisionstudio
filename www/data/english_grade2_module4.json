@@ -1,0 +1,33 @@
+{
+    "module_id": 4,
+    "title": "Nouns & Verbs",
+    "description": "Distinguish between naming words and action words.",
+    "questions": [
+      {
+        "question": "Which is a noun?",
+        "options": ["run", "apple", "jump"],
+        "answer": "apple"
+      },
+      {
+        "question": "Which is a verb?",
+        "options": ["dog", "eat", "tree"],
+        "answer": "eat"
+      },
+      {
+        "question": "Tap the noun:",
+        "options": ["sleep", "happy", "car"],
+        "answer": "car"
+      },
+      {
+        "question": "Which is a verb?",
+        "options": ["walk", "house", "blue"],
+        "answer": "walk"
+      },
+      {
+        "question": "Select the noun:",
+        "options": ["swim", "book", "run"],
+        "answer": "book"
+      }
+    ]
+  }
+  

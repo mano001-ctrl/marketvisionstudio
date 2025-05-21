@@ -1,0 +1,33 @@
+{
+    "module_id": 4,
+    "title": "Shapes & Spatial Reasoning",
+    "description": "Identify 2D shapes and use positional words.",
+    "questions": [
+      {
+        "question": "Which is a triangle?",
+        "options": ["🔵", "🔷", "🔺"],
+        "answer": "🔺"
+      },
+      {
+        "question": "Which shape has 4 equal sides?",
+        "options": ["Rectangle", "Triangle", "Square"],
+        "answer": "Square"
+      },
+      {
+        "question": "The circle is __ the square.",
+        "options": ["above", "below", "beside"],
+        "answer": "above"
+      },
+      {
+        "question": "Which two shapes can you join to make a rectangle?",
+        "options": ["🔴 + 🔴", "🔺 + 🔺", "🔵 + 🔵"],
+        "answer": "🔺 + 🔺"
+      },
+      {
+        "question": "Position: The star is __ the box.",
+        "options": ["inside", "behind", "in front of"],
+        "answer": "inside"
+      }
+    ]
+  }
+  

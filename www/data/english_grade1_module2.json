@@ -1,0 +1,33 @@
+{
+    "module_id": 2,
+    "title": "Sight Words",
+    "description": "Recognize common Grade 1 sight words.",
+    "questions": [
+      {
+        "question": "Which word is a sight word?",
+        "options": ["the", "cat", "run"],
+        "answer": "the"
+      },
+      {
+        "question": "Select the sight word:",
+        "options": ["and", "apple", "jump"],
+        "answer": "and"
+      },
+      {
+        "question": "Tap the sight word:",
+        "options": ["sun", "is", "big"],
+        "answer": "is"
+      },
+      {
+        "question": "Which is a sight word?",
+        "options": ["look", "dog", "at"],
+        "answer": "at"
+      },
+      {
+        "question": "Choose the sight word:",
+        "options": ["in", "pen", "red"],
+        "answer": "in"
+      }
+    ]
+  }
+  

@@ -1,0 +1,33 @@
+{
+    "module_id": 4,
+    "title": "Multiplication & Division Concepts",
+    "description": "Learn repeated addition, arrays and equal sharing.",
+    "questions": [
+      {
+        "question": "Which shows 3 × 2?",
+        "options": ["2+2+2", "3+3", "2+3+2"],
+        "answer": "2+2+2"
+      },
+      {
+        "question": "How many rows in this array? [[⚫⚫⚫],[⚫⚫⚫]]",
+        "options": ["2", "3", "6"],
+        "answer": "2"
+      },
+      {
+        "question": "6 cookies ÷ 3 friends = ? each",
+        "options": ["1", "2", "3"],
+        "answer": "2"
+      },
+      {
+        "question": "Repeated addition: 4+4+4 = __",
+        "options": ["12", "8", "16"],
+        "answer": "12"
+      },
+      {
+        "question": "Divide 8 apples among 4 kids → __ each",
+        "options": ["1", "2", "3"],
+        "answer": "2"
+      }
+    ]
+  }
+  

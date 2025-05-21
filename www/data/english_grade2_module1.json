@@ -1,0 +1,33 @@
+{
+    "module_id": 1,
+    "title": "Rhyming Words",
+    "description": "Identify words that rhyme.",
+    "questions": [
+      {
+        "question": "Which word rhymes with 'cat'?",
+        "options": ["bat", "dog", "pig"],
+        "answer": "bat"
+      },
+      {
+        "question": "Which word rhymes with 'fun'?",
+        "options": ["sun", "fan", "fin"],
+        "answer": "sun"
+      },
+      {
+        "question": "Pick the rhyme for 'red':",
+        "options": ["bed", "rid", "rad"],
+        "answer": "bed"
+      },
+      {
+        "question": "Which rhymes with 'tree'?",
+        "options": ["free", "try", "tire"],
+        "answer": "free"
+      },
+      {
+        "question": "Find rhyme for 'hat':",
+        "options": ["hit", "hot", "that"],
+        "answer": "that"
+      }
+    ]
+  }
+  

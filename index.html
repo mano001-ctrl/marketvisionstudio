@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Onka</title>
+  <link rel="manifest" href="/manifest.json">
+
+  <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
+
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
+  <!-- Baloo 2 – playful, rounded font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link
+  href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+  rel="stylesheet"
+  />
+
+
+  <!-- Google Fonts: Montserrat (headings) + Roboto (body) -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Bootstrap 5 CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.4.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- FontAwesome -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* === Global & Background === */
+    :root {
+      --brand-primary: #2C7BE5;
+      --brand-secondary: #F7B924;
+      --text-dark: #333;
+      --text-light: #eee;
+      --font-heading: 'Montserrat', sans-serif;
+      --font-body:    'Roboto',     sans-serif;
+      --line-height-body: 1.6;
+    }
+    html { font-size: 18px; }
+    body {
+      margin: 0;
+      background: linear-gradient(90deg, #ffffff, #e0f7ff);
+      background-size: 200% 200%;
+      animation: gradientBG 8s ease infinite;
+      color: var(--text-dark);
+      font-family: var(--font-body);
+      line-height: var(--line-height-body);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text-dark);
+    } 
+
+    .btn, .form-control, small, label {
+      font-family: var(--font-body);
+      font-weight: 200;
+    }
+
+    /* Card text, quiz questions, etc. */
+    .card, .learning-content p, .form-check-label {
+      font-family: var(--font-body);
+      font-weight: 200;
+    }
+
+    /* Tweak heading sizes if needed */
+    h2 {
+      font-size: 2.75rem;  /* slightly larger than before */
+    }
+
+    #quiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;              /* space between cards if you ever render >1 */
+    align-items: center;    /* center them horizontally */
+    }
+
+    .quiz-card {
+      position: relative;
+      background: #cccccc;   /* try #bbb, #aaa or even #999 for more contrast */
+      color: #222;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 100%;            /* so it fills the #quiz-form column width */
+      max-width: 360px;       /* your desired “mobile” width */
+      margin: 0 auto;
+      
+    }
+
+    .quiz-card .card-body {
+      background: inherit;          /* makes the body white too */
+    }
+    .quiz-card.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* make the list items highlight on hover */
+    .list-group-item-action {
+      cursor: pointer;
+    }
+    .list-group-item-action:hover {
+      background: rgba(44,123,229,0.1);
+    }
+    .list-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;    /* space between options */
+    }
+
+    .list-group-item {
+      width: 100%;
+    }
+
+    .cloud-card {
+      position: relative;
+      max-width: 320px;
+      margin: 2rem auto;
+      padding: 2rem 1rem;
+      background: #f0f0f0;
+      border-radius: 60px 60px 20px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      font-family: var(--font-heading);
+      color: #333;
+    }
+
+    /* single pseudo-element with multiple shadows = multiple puffs */
+    .cloud-card::before {
+      content: '';
+      position: absolute;
+      width: 70px; height: 70px;
+      top: -35px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f0f0f0;
+      border-radius: 50%;
+      /* box-shadows: x-offset, y-offset, blur, spread, color */
+      box-shadow:
+        -100px  20px  0  0 #f0f0f0,  /* far left puff */
+        -50px -10px  0  0 #f0f0f0,  /* upper left puff */
+          50px -10px  0  0 #f0f0f0,  /* upper right puff */
+        100px  20px  0  0 #f0f0f0;  /* far right puff */
+    }
+
+    /* remove the old ::after entirely */
+    .cloud-card::after {
+      display: none;
+    }
+
+    .perf-card {
+      padding: 1rem;
+      background: #fff;
+      border-radius: .5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* 1) Lock the viewport so the page itself never scrolls */
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* 2) Make the container fill the screen and scroll its children if needed */
+    .app-container {
+      height: 100%;
+      overflow-y: auto;
+      padding: 2rem 1rem;
+      box-sizing: border-box;
+    }
+
+    /* ——————————————— */
+    /* Make Performance scrollable */
+    /* ——————————————— */
+
+    #performance-screen .screen-card {
+      /* fill the full height of the screen minus any padding */
+      max-height: 100%;
+      overflow-y: auto;
+      /* lay out header, charts, list vertically */
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      /* optional: give a bit of breathing room */
+      padding-bottom: 2rem;
+      
+
+    }
+
+    /* Ensure each chart / list section can shrink if needed */
+    #performance-screen .perf-card,
+    #performance-screen canvas {
+      flex-shrink: 0;
+    }
+
+
+    /* 3) Reset the .screen positioning (we’ll center via Flexbox instead) */
+    .screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+
+    display: flex;               /* always flex so we can center */
+    justify-content: center;
+    align-items: center;
+
+    opacity: 0;                  /* start hidden */
+    transform: translateX(30px); /* start shifted right */
+    pointer-events: none;        /* block clicks */
+
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+  }
+
+
+    /* 4) When .active, show and center its inner card */
+    .screen.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* 5) Card wrapper stays the same */
+  .screen .screen-card {
+    width: 100%;
+    max-width: 720px;
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+
+
+    @keyframes gradientBG {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    body.dark-mode {
+      background: linear-gradient(45deg,#3a1c71,#d76d77,#ffaf7b);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: var(--text-light);
+    }
+
+    /* === Centered Container & Screens === */
+    
+    /* === Rain Animation === */
+    .rain-container {
+      position: absolute;
+      top: 3.5rem;
+      left: 0;
+      width: 100%;
+      height: 150px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .rain-icon {
+      position: absolute;
+      top: -50px;
+      color: rgba(255,255,255,0.8);
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(200px) rotate(360deg); }
+    }
+
+    /* === Form & Controls === */
+    .btn-primary { background: var(--brand-primary); border-color: var(--brand-primary); }
+    .btn-warning { background: var(--brand-secondary); border-color: var(--brand-secondary); }
+    .btn-outline-light:hover { background: rgba(255,255,255,0.2); }
+
+    .form-control {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      max-width: 360px;
+      width: 100%;
+    }
+    .form-control:focus {
+      box-shadow: 0 0 0 .25rem rgba(44,123,229,0.25);
+      border-color: var(--brand-primary);
+    }
+
+    /* === Headings & Video Container === */
+    h2 {
+      font-family: 'Baloo 2', cursive;
+      font-weight: 200;
+      font-size: 2.5rem;
+      margin: 1.5rem 0;
+      text-align: center;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    }
+    .video-container iframe {
+      width: 100%;
+      height: 315px;
+    }
+
+    /* === Accordion Overrides (optional tweaks) === */
+    .accordion-button:focus {
+      box-shadow: none;
+    }
+
+    /* === Spinner === */
+    #spinner {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    /* === Responsive Two-Button Layout === */
+    .btn-responsive-container {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 576px) {
+      .btn-responsive-container .btn-rounded {
+        flex: 1 1 48%;
+      }
+    }
+
+    /* ================================================= */
+    /* Base “app card” style for all your .screen-card  */
+    /* ================================================= */
+    .screen .screen-card {
+      background: #fff;
+      border-radius: 16px;                     /* softer corners */
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12); /* gentle elevation */
+      padding: 1.5rem;
+      margin: 1rem;                            /* breathing room from the edges */
+      width: calc(100% - 2rem);                /* full-width minus the margins */
+      max-width: 480px;                        /* cap it on tablet/desktop */
+      transition: 
+        box-shadow 0.3s ease, 
+        transform 0.15s ease;
+    }
+
+    /* Slight “press” feedback on tap */
+    .screen .screen-card:active {
+      transform: scale(0.98);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ================================= */
+    /* Touch-friendly buttons & inputs    */
+    /* ================================= */
+    @media (min-width: 576px) {
+      .btn-rounded {
+        width: auto;        /* go back to auto on tablet+ */
+        margin: 0 0.5rem;   /* horizontal spacing */
+      }
+    }
+
+    @media (max-width: 576px) {
+      /* Target both your theme-menu pills and module pills */
+      #theme-menu-container .btn,
+      #learning-accordion .btn-start-quiz {
+        /* Remove the big top/bottom padding */
+        padding: 0.4rem 1rem !important;
+        /* Tighter vertical spacing */
+        margin: 0.25rem 0 !important;
+        /* Slightly smaller text */
+        font-size: 0.9rem !important;
+        /* Let the height collapse to its content */
+        min-height: auto !important;
+      }
+    }
+
+
+    /* ================================= */
+    /* List-group items (quiz choices)   */
+    /* ================================= */
+    .list-group-item-action {
+      padding: 1rem;
+      border-radius: 8px;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .list-group-item-action:hover,
+    .list-group-item-action input:focus + & {
+      background-color: rgba(44,123,229,0.1);
+    }
+    .list-group-item-action:active {
+      transform: translateY(1px);
+    }
+
+    /* ================================= */
+    /* Videos & charts in their own card */
+    /* ================================= */
+    .video-container,
+    .card.mx-auto canvas {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+
+    /* ================================= */
+    /* Headings inside cards             */
+    /* ================================= */
+    .screen-card h2 {
+      margin-bottom: 1rem;
+      font-size: 1.75rem;
+      text-align: center;
+    }
+
+    /* ================================
+    Professional “Theme” Button Style
+    ================================ */
+
+    /* 1) Target both theme-menu and module screen buttons */
+    #theme-menu-container .btn,
+    #learning-accordion .btn-start-quiz,
+    .theme-btn {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: 0.5rem auto;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      font-weight: 300;
+      text-align: center;
+      
+      /* remove Bootstrap outline style */
+      background-color: #fff;
+      color: var(--text-dark);
+      border: none;
+      
+      /* big pill shape */
+      border-radius: 24px;
+      
+      /* subtle floating shadow */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      
+      /* smooth hover/active transitions */
+      transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* 2) Hover lift and light background */
+    #theme-menu-container .btn:hover,
+    #learning-accordion .btn-start-quiz:hover,
+    .theme-btn:hover {
+      background-color: #f7f7f7;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    /* 3) Pressed state */
+    #theme-menu-container .btn:active,
+    #learning-accordion .btn-start-quiz:active,
+    .theme-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    /* 4) Ensure the theme headings sit nicely above those buttons */
+    #theme-menu-screen .screen-card h2,
+    #module-screen .screen-card h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
+      text-align: center;
+    }
+
+    /* ==============================================
+   Pill-shaped “app” buttons for Home / Grade / Theme
+   ============================================== */
+    .subject-btn,
+    .grade-btn,
+    #logout-btn,
+    #theme-menu-container .btn,
+    #learning-accordion .btn-start-quiz {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: .5rem auto;
+      padding: .75rem 1rem;
+      font-size: 1rem;
+      font-weight: 200;
+      text-align: center;
+
+      background-color: #fff;
+      color: var(--text-dark);
+      border: none;
+      border-radius: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform .1s ease,
+                  box-shadow .2s ease,
+                  background-color .2s ease;
+    }
+
+    .subject-btn:hover,
+    .grade-btn:hover,
+    #logout-btn:hover,
+    #theme-menu-container .btn:hover,
+    #learning-accordion .btn-start-quiz:hover {
+      background-color: #f7f7f7;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .subject-btn:active,
+    .grade-btn:active,
+    #logout-btn:active,
+    #theme-menu-container .btn:active,
+    #learning-accordion .btn-start-quiz:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    #perf-tabs {
+      list-style: none;    /* no bullets */
+      padding-left: 0;     /* nuke the default indent */
+      margin-bottom: 1rem; /* whatever spacing you like */
+    }
+    #perf-tabs li {
+      list-style: none;
+    }
+
+    /* === Compact “lessons” list styling === */
+    .lessons {
+      max-height: 300px;      /* scroll if too many entries */
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+
+    .lessons .lesson {
+      display: flex;
+      flex-direction: column;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #eee;
+      line-height: 1.2;
+    }
+
+    .lessons .lesson:last-child {
+      border-bottom: none;
+    }
+
+    .lessons .lesson .title {
+      font-size: 0.85rem;
+      font-weight: 350;
+      color: #333;
+    }
+
+    .lessons .lesson .score {
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .theme-description {
+    margin: 0.75rem auto 1.25rem;
+    font-size: 1rem;
+    color: #555;
+    text-align: center;
+    max-width: 640px;
+    line-height: 1.4;
+
+    /* switch to Playfair Display for all descriptions */
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;      /* normal weight; bump to 700 if you want bolder */
+    font-style: normal;
+    }
+
+    
+
+    .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+
+    /* just push it down from the content above */
+    margin: 1rem 0 0 0;
+    padding: 0.5rem 0;
+
+    /* fill exactly the card’s inner width */
+    width: 100%;
+  }
+
+
+  .bottom-nav .nav-item {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-dark);
+    font-size: 0.85rem;
+    }
+
+  .bottom-nav .nav-item i {
+    font-size: 1.1rem;
+    display: block;
+  }
+
+  .bottom-nav .nav-item.active,
+  .bottom-nav .nav-item:hover {
+    color: var(--brand-primary);
+  }
+
+  /* ——— Unified “pill” button style ——— */
+  .btn-rounded {
+    display: block;                /* full‐width on mobile, centered on desktop */
+    margin: 0.75rem auto;          /* vertical spacing + centered */
+    min-width: 240px;              /* ensure consistent width */
+    padding: 0.75rem 1.5rem;       /* comfy tappable area */
+    font-size: 1rem;               /* match your pills */
+    font-weight: 200;
+    background-color: #fff; /* light grey fill */
+    color: #333     !important;    /* dark text */
+    border: 1px solid rgba(0,0,0,0.1);     /* crisp black border */
+    border-radius: 24px;           /* pill shape */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  .btn-rounded:hover {
+    background-color: #e8e8e8 !important; /* subtle hover */
+    transform: translateY(-1px);
+  }
+
+  .btn-rounded {
+  display: inline-block;                /* shrink to fit its text */
+  padding: 0.75rem 1.5rem;              /* comfortable tappable area */
+  border-radius: 999px;                 /* fully pill-shaped */
+  background-color: #ffffff;            /* solid white */
+  border: 1px solid rgba(0,0,0,0.1);    /* very light grey outline */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* soft floating shadow */
+  font-size: 1rem;                      /* same as your theme */
+  line-height: 1.2;
+  color: var(--text-dark);              /* your standard text color */
+  text-align: center;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  }
+
+  .btn-rounded:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+  }
+
+  .btn-rounded:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  }
+
+  /* ------------------------------------------------------- *
+ * pill-shaped “hub” buttons (Grade 12 Math, etc.)         *
+  * ------------------------------------------------------- */
+  .btn-rounded {
+    display: inline-block;                       /* shrink to text */
+    padding: 0.75rem 1.5rem;                     /* comfy tap area */
+    border-radius: 999px;                        /* fully pill shaped */
+    font-size: 1rem;
+    line-height: 1.2;
+    text-align: center;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    min-height: 48px;     /* easy to tap */      /* legible text */
+    margin: 0.5rem 0;     /* space between stacked buttons */
+    width: 100%;
+  }
+    
+
+  /* If you used option A (outline-secondary + text-dark) above then you already get
+    white bg + border + dark text. You can refine the shadow: */
+  .btn-outline-secondary.btn-rounded {
+    background-color: #fff;                      /* force white */
+    border: 1px solid rgba(0,0,0,0.1);           /* light black border */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);      /* subtle floating shadow */
+  }
+
+  /* If you used option B (hub-btn) above, then define: */
+  .hub-btn {
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    color: var(--text-dark);                     /* match your theme text color */
+  }
+
+  /* Hover & active “lift” */
+  .btn-rounded:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+  }
+
+  .btn-rounded:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(243, 241, 241, 0.06);
+  }
+
+  @media (max-width: 576px) {
+  /* shrink the icons */
+  .bottom-nav .nav-item i {
+    font-size: 0.9rem;        /* down from 1.1rem */
+  }
+
+  /* shrink the label text */
+  .bottom-nav .nav-item span {
+    font-size: 0.75rem;       /* down from 0.85rem */
+  }
+
+  /* tighten up the pills themselves */
+  .bottom-nav .nav-item {
+    padding: 0.25rem 0;       /* was default padding on .nav-item */
+    margin: 0;                /* remove any extra spacing */
+  }
+
+  /* if you need even more room, you can also reduce the nav’s top padding */
+  .bottom-nav {
+    padding: 0.25rem 0;       /* down from 0.5rem */
+  }
+  }
+
+  @media (max-width: 576px) {
+  #submit-quiz-btn,
+  #proceed-quiz-btn {
+    display: block;              /* so margin auto will center */
+    width: 80%;                  /* pick a % that looks good on phone */
+    max-width: 360px;            /* match your .quiz-card max-width */
+    margin: 1rem auto;           /* center horizontally + vertical gap */
+    padding: 0.75rem 1rem;       /* comfortable tap area */
+    box-sizing: border-box;      /* include its padding in that width */
+    
+    /* New additions: */
+    text-align: center;          /* center the text label */
+    white-space: nowrap;         /* keep “Submit Quiz” all on one line */
+  }
+  }
+
+
+
+  /* if you still have a .btn-rounded cap, override here too */
+  .screen-card .btn-rounded {
+    max-width: 100% !important;
+  }
+
+  /* ——— Pill-shaped buttons ——— */
+  .btn-pill {
+    display: block;
+    width: 100%;
+    max-width: 280px;                /* match your column width */
+    margin: 0.5rem auto;             /* center + vertical spacing */
+    padding: 0.75rem 1.5rem;         /* comfy tap area */
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-dark);
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 999px;            /* fully pill-shaped */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+  }
+  .btn-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  }
+  .btn-pill:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  }
+
+  #profile-content {
+  /* if you prefer flex-centering: */
+  display: center;
+  
+  
+  }
+
+/* ensure the img itself centers inside its container */
+  #profile-pic {
+  display: block;
+  margin: 0 auto 0.5rem;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--brand-primary);
+  justify-content: center;
+  /* margin-bottom: 1rem; */
+  }
+
+  #profile-upload {
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Make the whole nav‐item a bit smaller */
+.bottom-nav .nav-item {
+  padding: 0.25rem 0.5rem !important;   /* tighten the tappable area */
+  font-size: 0.75rem;                   /* smaller text */
+}
+
+/* Shrink the icon */
+.bottom-nav .nav-item i {
+  font-size: 1rem !important;           /* down from ~1.1rem */
+}
+
+/* Shrink the label under the icon */
+.bottom-nav .nav-item span {
+  display: block;                       /* ensure it sits below the icon */
+  font-size: 0.7rem !important;         /* down from ~0.85rem */
+  line-height: 1;                       /* tighten vertical spacing */
+}
+
+/* Optional: for very small screens, shrink even more */
+@media (max-width: 400px) {
+  .bottom-nav .nav-item {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.7rem;
+  }
+  .bottom-nav .nav-item i {
+    font-size: 0.9rem !important;
+  }
+  .bottom-nav .nav-item span {
+    font-size: 0.6rem !important;
+  }
+}
+
+/* 1) Grid layout for book cards */
+.book-grid {
+  display: grid;
+  gap: 1rem;
+  /* auto-fit makes as many cards as will fit, each min 120px wide */
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin: 1rem 0;
+}
+
+/* 2) Book-card styling */
+.book-card {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.book-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.book-card:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* 3) Icon sizing */
+.book-icon {
+  font-size: 2rem;
+  color: var(--brand-primary);
+}
+
+/* 4) Title and subtitle */
+.book-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.book-sub {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* make the “no file chosen” text invisible by zeroing out the input’s font */
+#profile-upload {
+  font-size: 0;                 /* hide all text in the file-input */
+}
+
+/* then restore the font just on the button portion */
+#profile-upload::-webkit-file-upload-button {
+  font-size: 1rem;              /* Chrome, Edge, Safari */
+}
+
+#profile-upload::file-selector-button {
+  font-size: 1rem;              /* Firefox, some modern browsers */
+}
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  </style>
+</head>
+<body>
+
+
+  <!-- Fullscreen Spinner -->
+  <div id="spinner">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading…</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+    <div class="app-container">
+
+      <!-- LOGIN SCREEN -->
+      <div id="login-screen" class="screen">
+        <img src="images/hero.svg" alt="" class="hero-img"/>
+        <div class="card card-shadow p-4 bg-white w-100" style="max-width:360px;">
+          <h4 class="text-center mb-4">👋 Welcome!</h4>
+          <input type="text"    id="login-email"    class="form-control" placeholder="Username"/>
+          <input type="password" id="login-password" class="form-control" placeholder="Password"/>
+          <button id="login-btn"    class="btn btn-primary btn-rounded w-100 mb-2">Login</button>
+          <button id="register-btn" class="btn btn-outline-secondary btn-rounded w-100">Register</button>
+        </div>
+      </div>
+
+      <!-- HOME SCREEN -->
+      <div id="home-screen" class="screen">
+        <div class="screen-card">
+          <!-- only the welcome text remains -->
+          <p class="welcome-message text-center">
+            Welcome to Onka!<br>
+            Your journey to discovery starts now.<br>
+            Explore curated lessons across subjects.<br>
+            Learn at your own pace with fun videos.<br>
+            Track your progress and celebrate success.
+          </p>
+
+          <!-- NEW: placeholder for the random quote -->
+          <p id="motivation-message" class="text-center fst-italic text-secondary mb-4"></p>
+
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item active" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- GRADE SCREEN -->
+      <div id="grade-screen" class="screen">
+        <div class="screen-card">
+          <h2 id="subject-title"></h2>
+
+          <div class="btn-responsive-container">
+            <button class="grade-btn" data-grade="1">Grade 1</button>
+            <button class="grade-btn" data-grade="2">Grade 2</button>
+          </div>
+
+
+          <div id="rain-container" class="rain-container"></div>
+
+          <button id="back-home-btn" class="btn btn-link mt-3">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item active" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- MODULE SCREEN -->
+      <div id="module-screen" class="screen">
+        <div class="screen-card">
+
+          <!-- 1) Heading -->
+          <h2 id="module-header"></h2>
+
+          <!-- 2) Rain effect -->
+          <div id="rain-container-module" class="rain-container mb-3"></div>
+
+          <!-- 3) JS-populated list of lesson-buttons -->
+          <div id="module-menu-container" class="btn-responsive-container">
+            <button class="theme-btn" data-theme="number-sense">
+              Number Sense &amp; Counting
+            </button>
+            <button class="theme-btn" data-theme="place-value">
+              Place Value
+            </button>
+            <button class="theme-btn" data-theme="addition">
+              Simple Addition within 20
+            </button>
+            <button class="theme-btn" data-theme="subtraction">
+              Simple Subtraction within 20
+            </button>
+            <button class="theme-btn" data-theme="comparing">
+              Comparing Numbers &amp; Ordering
+            </button>
+          </div>
+
+
+
+          <!-- 4) Back to subject/grade -->
+          <button id="back-grade-btn" class="btn btn-link mt-3">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+
+          <!-- 5) Your bottom-nav stays here -->
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+
+        </div>
+      </div>
+
+
+      <!-- VIDEO SCREEN -->
+      <div id="video-screen" class="screen">
+        <div class="screen-card">
+          <h2 id="video-header"></h2>
+          <div id="video-placeholder" class="mb-4" style="max-width:640px; width:100%;"></div>
+          <div class="d-flex gap-3 mb-4">
+            <button id="proceed-quiz-btn" class="btn btn-success">
+              Proceed to Quiz
+            </button>
+          </div>
+          <button id="back-to-theme-btn" class="btn btn-link">
+            ← Back
+          </button>
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item active" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- QUIZ SCREEN -->
+      <div id="quiz-screen" class="screen">
+        <div class="screen-card">
+          <h2 id="quiz-header"></h2>
+          <form id="quiz-form" class="mb-4 w-100" style="max-width:360px;"></form>
+          <div class="d-flex gap-3 mb-4">
+            <button id="submit-quiz-btn" class="btn btn-link">Submit Quiz</button>
+            <button id="back-video-btn" class="btn btn-link">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+          </div>
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item active" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE SCREEN -->
+      <div id="performance-screen" class="screen">
+        <div class="screen-card">
+          <button id="export-pdf-btn" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-file-pdf me-1"></i> Export PDF
+          </button>
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item active" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+
+          <h2 class="mb-4">Performance History</h2>
+
+          <ul id="perf-tabs" class="nav nav-tabs mb-3 list-unstyled">
+            <li class="nav-item">
+              <button class="nav-link active" data-subject="Math" data-grade="1">Math G1</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" data-subject="Math" data-grade="2">Math G2</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" data-subject="English" data-grade="1">Eng G1</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" data-subject="English" data-grade="2">Eng G2</button>
+            </li>
+          </ul>
+
+          <div class="card mx-auto mb-4 perf-card" style="max-width:720px;">
+            <canvas id="performance-chart" style="width:100%; height:300px;"></canvas>
+          </div>
+          <div class="card mx-auto mb-4 perf-card" style="max-width:720px;">
+            <canvas id="performance-bar-chart" style="width:100%; height:300px;"></canvas>
+          </div>
+          <div class="card mx-auto mb-4 perf-card" style="max-width:720px;">
+            <div id="performance-list" class="lessons"></div>
+          </div>
+          <button id="back-home-btn2" class="btn btn-link">← Back to Home</button>
+        </div>
+      </div>
+
+      <!-- LIBRARY SCREEN -->
+      <div id="library" class="screen">
+        <div class="screen-card">
+          <h2>Library</h2>
+          <div id="library-content" class="book-grid"><!-- book cards injected here --></div>
+          <button id="back-home-library" class="btn btn-link mt-3">← Back to Home</button>
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item active" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- PROFILE SCREEN -->
+      <div id="profile" class="screen">
+        <div class="screen-card">
+          <h2>Profile</h2>
+          <div id="profile-content" class="text-center mb-4">
+            <img
+              id="profile-pic"
+              src="default-profile.png"
+              alt="Profile Picture"
+              onerror="this.onerror=null;this.src='default-profile.png'"
+            />
+            <div class="mt-2">
+              <input
+                type="file"
+                id="profile-upload"
+                accept="image/*"
+              />
+            </div>
+          </div>
+
+
+          <button
+          id="performance-btn"
+          class="subject-btn mb-3"
+          data-screen="performance"
+        >
+          <i class="fas fa-chart-line me-1"></i>
+          Performance
+        </button>
+        <button id="back-home-profile" class="btn btn-link mt-3">← Back to Home</button>
+
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item active" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- THEME MENU SCREEN -->
+      <div id="theme-menu-screen" class="screen">
+        <div class="screen-card">
+          <h2 id="theme-menu-header">Choose a subject</h2>
+            <div id="theme-menu-container" class="btn-responsive-container">
+          <button id="back-to-grade-btn" class="btn btn-link mb-3">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <div id="theme-menu-container" class="btn-responsive-container">
+            <button class="subject-btn" data-subject="Math">
+              <i class="fas fa-calculator me-2"></i> Maths
+            </button>
+            <button class="subject-btn" data-subject="English">
+              <i class="fas fa-book-open me-2"></i> English
+            </button>
+            <button class="subject-btn" disabled>
+              <i class="fas fa-language me-2"></i> Sepedi
+              <small class="text-muted ms-1">(Coming Soon)</small>
+            </button>
+            <button class="subject-btn" disabled>
+              <i class="fas fa-atom me-2"></i> Physics
+              <small class="text-muted ms-1">(Coming Soon)</small>
+            </button>
+            <button class="subject-btn" data-subject="Logout">
+              <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </button>
+          </div>
+
+          
+
+          <nav class="bottom-nav">
+            <button class="nav-item" data-screen="home">
+              <i class="fas fa-home"></i><span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="library">
+              <i class="fas fa-book"></i><span>Library</span>
+            </button>
+            <button class="nav-item active" data-screen="themeMenu">
+              <i class="fas fa-check-circle"></i><span>Subjects</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+              <i class="fas fa-user-circle"></i><span>Profile</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+
+
+
+      
+      
+
+      
+
+          <!-- your in-card bottom tabs -->
+          
+        </div>
+      </div>
+
+
+      
+
+
+      
+      
+
+
+
+
+    </div><!-- /.app-container -->
+  </div><!-- /#main-content -->
+
+  <!-- Bootstrap Bundle JS (required for Accordion) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.4.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js for performance charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+  <!-- html2pdf bundles jsPDF + html2canvas + svg2pdf under the hood -->
+  
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <script defer src="app.js"></script>
+
+
+
+  
+
+
+</body>
+</html>

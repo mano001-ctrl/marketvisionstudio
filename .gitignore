@@ -1,0 +1,14 @@
+# Byte-compiled Python files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.env/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Streamlit cache & logs
+.streamlit/
+node_modules

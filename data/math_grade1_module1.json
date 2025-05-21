@@ -1,0 +1,33 @@
+{
+    "module_id": 1,
+    "title": "Number Sense & Counting",
+    "description": "Count aloud 1 → 20, match numerals to objects, and compare quantities.",
+    "questions": [
+      {
+        "question": "What number comes next? 7, 8, __",
+        "options": ["6", "9", "10"],
+        "answer": "9"
+      },
+      {
+        "question": "Tap the numeral that matches this set (⚫⚫⚫⚫).",
+        "options": ["3", "4", "5"],
+        "answer": "4"
+      },
+      {
+        "question": "Which group has more?",
+        "options": ["⚫⚫⚫ vs ⚫⚫⚫⚫⚫", "⚫⚫ vs ⚫⚫⚫", "⚫⚫⚫⚫ vs ⚫⚫⚫"], 
+        "answer": "⚫⚫⚫ vs ⚫⚫⚫⚫⚫"
+      },
+      {
+        "question": "What comes before 12?",
+        "options": ["11", "13", "10"],
+        "answer": "11"
+      },
+      {
+        "question": "Count backwards: __, 5, 4, 3",
+        "options": ["6", "7", "8"],
+        "answer": "6"
+      }
+    ]
+  }
+  

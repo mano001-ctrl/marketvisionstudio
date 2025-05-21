@@ -1,0 +1,33 @@
+{
+    "module_id": 2,
+    "title": "Sight Words Level 2",
+    "description": "Master common Grade 2 sight words.",
+    "questions": [
+      {
+        "question": "Which is a sight word?",
+        "options": ["because", "cat", "run"],
+        "answer": "because"
+      },
+      {
+        "question": "Tap the sight word:",
+        "options": ["their", "there", "they’re"],
+        "answer": "there"
+      },
+      {
+        "question": "Choose the sight word:",
+        "options": ["enough", "eight", "each"],
+        "answer": "each"
+      },
+      {
+        "question": "Select the sight word:",
+        "options": ["people", "apple", "pupil"],
+        "answer": "people"
+      },
+      {
+        "question": "Which is a sight word?",
+        "options": ["little", "litter", "lately"],
+        "answer": "little"
+      }
+    ]
+  }
+  

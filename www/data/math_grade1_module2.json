@@ -1,0 +1,33 @@
+{
+    "module_id": 2,
+    "title": "Place Value",
+    "description": "Build two-digit numbers with tens & ones; decompose numbers up to 20.",
+    "questions": [
+      {
+        "question": "How many tens and ones in 14?",
+        "options": ["1 ten + 4 ones", "4 tens + 1 one", "1 ten + 1 one"],
+        "answer": "1 ten + 4 ones"
+      },
+      {
+        "question": "Decompose 17:",
+        "options": ["10 + 7", "7 + 10", "10 + 5"],
+        "answer": "10 + 7"
+      },
+      {
+        "question": "What number is this ten-frame? (🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 ◻◻◻◻◻)",
+        "options": ["10", "15", "5"],
+        "answer": "15"
+      },
+      {
+        "question": "Which shows 12?",
+        "options": ["10 + 2", "2 + 1", "1 + 12"],
+        "answer": "10 + 2"
+      },
+      {
+        "question": "How many ones in the number 19?",
+        "options": ["9", "1", "10"],
+        "answer": "9"
+      }
+    ]
+  }
+  

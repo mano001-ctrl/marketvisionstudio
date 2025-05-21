@@ -1,0 +1,33 @@
+{
+    "module_id": 1,
+    "title": "Number Sense & Counting",
+    "description": "Count to 100, skip-count by 2s/5s/10s, compare & order numbers.",
+    "questions": [
+      {
+        "question": "What comes next? 20, 30, 40, __",
+        "options": ["45", "50", "60"],
+        "answer": "50"
+      },
+      {
+        "question": "Skip-count by 5s: 5, 10, 15, __",
+        "options": ["17", "20", "25"],
+        "answer": "20"
+      },
+      {
+        "question": "Which is greater: 73 or 37?",
+        "options": ["73", "37", "equal"],
+        "answer": "73"
+      },
+      {
+        "question": "Order these: 22, 15, 28 → __, __, __",
+        "options": ["15, 22, 28", "28, 22, 15", "22, 15, 28"],
+        "answer": "15, 22, 28"
+      },
+      {
+        "question": "Fill in blank: 99, __, 101",
+        "options": ["100", "102", "98"],
+        "answer": "100"
+      }
+    ]
+  }
+  

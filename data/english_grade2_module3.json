@@ -1,0 +1,33 @@
+{
+    "module_id": 3,
+    "title": "Simple Sentences",
+    "description": "Build and identify correct simple sentences.",
+    "questions": [
+      {
+        "question": "Which is a correct sentence?",
+        "options": ["dog The runs.", "The dog runs.", "Runs the dog."],
+        "answer": "The dog runs."
+      },
+      {
+        "question": "Choose the sentence:",
+        "options": ["I am happy.", "Happy am I.", "Am I happy."],
+        "answer": "I am happy."
+      },
+      {
+        "question": "Tap the correct sentence:",
+        "options": ["She likes ice-cream.", "Likes she ice-cream.", "She ice-cream likes."],
+        "answer": "She likes ice-cream."
+      },
+      {
+        "question": "Which is right?",
+        "options": ["They plays outside.", "They play outside.", "Play they outside."],
+        "answer": "They play outside."
+      },
+      {
+        "question": "Pick the sentence:",
+        "options": ["Birds flies high.", "Bird fly high.", "Birds fly high."],
+        "answer": "Birds fly high."
+      }
+    ]
+  }
+  
