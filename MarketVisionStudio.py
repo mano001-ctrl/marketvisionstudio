@@ -1228,7 +1228,7 @@ elif tab == "Strategy Development":
     # Toggle to Select Strategy View
     strategy_view = st.radio(
         "Select Strategy View:",
-        ("Time Series Momentum Strategy", "Buy and Hold Portfolio", "Efficient Frontier Analysis"),
+        ("TS Momentum Strategy", "Comparative Portfolio Benchmarking", "Efficient Frontier Analysis"),
         horizontal=True
     )
 
@@ -1264,128 +1264,10 @@ elif tab == "Strategy Development":
             plt.close(fig) 
         else:
             st.warning("No price data available for the selected ticker and date range.")
-        # ——————————————————————————————————————
-        # Commodity Time‐Series Momentum Strategy
-        # ——————————————————————————————————————
-        st.subheader("📈 TS Momentum Strategy (Commodity)")
-
-        # Let the user pick a commodity
-        comm_ticker = st.sidebar.text_input(
-            "Enter commodity ticker for TSMOM", 
-            value="CL=F", 
-            key="tsmom_commodity"
-        )
-
-        # Fetch & prepare
-        data_comm = yf.download(comm_ticker, start=tsmom_start, end=tsmom_end)["Close"]
-
-        if not data_comm.empty:
-            # 1) Returns
-            returns_comm     = data_comm.pct_change().dropna()
-            # 2) Lookback signal
-            lookback_comm    = data_comm.pct_change(periods=tsmom_lookback).shift(1)
-            signal_comm      = (lookback_comm > 0).astype(int)
-            # 3) Strategy returns
-            strat_returns_comm = signal_comm * returns_comm
-            # 4) Cumulative paths
-            cum_strat_comm     = (1 + strat_returns_comm).cumprod()
-            cum_buy_hold_comm  = (1 + returns_comm).cumprod()
-
-            # 5) Plot
-            fig_comm, ax_comm = plt.subplots(figsize=(10, 6))
-            ax_comm.plot(cum_buy_hold_comm, label="Buy & Hold", linestyle="--")
-            ax_comm.plot(cum_strat_comm,    label="TS Momentum Strategy")
-            ax_comm.set_title(f"TSMOM vs Buy & Hold ({comm_ticker})", fontsize=16)
-            ax_comm.set_xlabel("Date")
-            ax_comm.set_ylabel("Growth of $1 Investment")
-            ax_comm.legend()
-            st.pyplot(fig_comm)
-        else:
-            st.warning(f"No price data available for {comm_ticker} in the selected date range.")
-        # ——————————————————————————————————————
-        # Currency Time‐Series Momentum Strategy
-        # ——————————————————————————————————————
-        st.subheader("📈 TS Momentum Strategy (Currency)")
-
-        # Let the user pick a currency pair
-        curr_ticker = st.sidebar.text_input(
-            "Enter currency pair ticker for TSMOM",
-            value="EURUSD=X",
-            key="tsmom_currency"
-        )
-
-        # Fetch & prepare
-        data_curr = yf.download(curr_ticker, start=tsmom_start, end=tsmom_end)["Close"]
-
-        if not data_curr.empty:
-            # 1) Returns
-            returns_curr      = data_curr.pct_change().dropna()
-            # 2) Lookback signal
-            lookback_curr     = data_curr.pct_change(periods=tsmom_lookback).shift(1)
-            signal_curr       = (lookback_curr > 0).astype(int)
-            # 3) Strategy returns
-            strat_returns_curr = signal_curr * returns_curr
-            # 4) Cumulative paths
-            cum_strat_curr     = (1 + strat_returns_curr).cumprod()
-            cum_buy_hold_curr  = (1 + returns_curr).cumprod()
-
-            # 5) Plot
-            fig_curr, ax_curr = plt.subplots(figsize=(10, 6))
-            ax_curr.plot(cum_buy_hold_curr, label="Buy & Hold", linestyle="--")
-            ax_curr.plot(cum_strat_curr,    label="TS Momentum Strategy")
-            ax_curr.set_title(f"TSMOM vs Buy & Hold ({curr_ticker})", fontsize=16)
-            ax_curr.set_xlabel("Date")
-            ax_curr.set_ylabel("Growth of $1 Investment")
-            ax_curr.legend()
-            st.pyplot(fig_curr)
-            plt.close(fig_curr)
-        else:
-            st.warning(f"No price data available for {curr_ticker} in the selected date range.")
-
-        # ——————————————————————————————————————
-        # Treasury Time‐Series Momentum Strategy
-        # ——————————————————————————————————————
-        st.subheader("📈 TS Momentum Strategy (Treasury Futures)")
-
-        # Let the user pick a treasury futures ticker
-        treas_ticker = st.sidebar.text_input(
-            "Enter treasury futures ticker for TSMOM",
-            value="ZN=F",   # 10-Year Treasury Note Future
-            key="tsmom_treasury"
-        )
-
-        # Fetch & prepare
-        data_treas = yf.download(treas_ticker, start=tsmom_start, end=tsmom_end)["Close"]
-
-        if not data_treas.empty:
-            # 1) Returns
-            returns_treas      = data_treas.pct_change().dropna()
-            # 2) Lookback signal
-            lookback_treas     = data_treas.pct_change(periods=tsmom_lookback).shift(1)
-            signal_treas       = (lookback_treas > 0).astype(int)
-            # 3) Strategy returns
-            strat_returns_treas = signal_treas * returns_treas
-            # 4) Cumulative paths
-            cum_strat_treas     = (1 + strat_returns_treas).cumprod()
-            cum_buy_hold_treas  = (1 + returns_treas).cumprod()
-
-            # 5) Plot
-            fig_treas, ax_treas = plt.subplots(figsize=(10, 6))
-            ax_treas.plot(cum_buy_hold_treas, label="Buy & Hold", linestyle="--")
-            ax_treas.plot(cum_strat_treas,    label="TS Momentum Strategy")
-            ax_treas.set_title(f"TSMOM vs Buy & Hold ({treas_ticker})", fontsize=16)
-            ax_treas.set_xlabel("Date")
-            ax_treas.set_ylabel("Growth of $1 Investment")
-            ax_treas.legend()
-            st.pyplot(fig_treas)
-            plt.close(fig_treas)
-        else:
-            st.warning(f"No price data available for {treas_ticker} in the selected date range.")
 
 
 
-
-    elif strategy_view == "Buy and Hold Portfolio":
+    elif strategy_view == "Comparative Portfolio Benchmarking":
         st.subheader("📈 Buy & Hold 10-Stock Portfolio vs SPY")
 
         portfolio_tickers = st.multiselect(
@@ -1415,7 +1297,7 @@ elif tab == "Strategy Development":
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.plot(cumulative_portfolio, label="10-Stock Portfolio", linewidth=2)
             ax.plot(cumulative_spy, label="SPY Benchmark", linestyle="--")
-            ax.set_title("Buy & Hold Portfolio vs SPY", fontsize=16)
+            ax.set_title("Magnificent Seven Portfolio vs SPY", fontsize=16)
             ax.set_xlabel("Date")
             ax.set_ylabel("Growth of $1 Investment")
             ax.legend()
@@ -1425,9 +1307,9 @@ elif tab == "Strategy Development":
             st.warning("Please select at least 2 stocks for the portfolio.")
 
         # 1) Sidebar inputs (you can reuse your existing date widgets)
-        st.sidebar.subheader("Quality Factor Portfolio")
-        q_start = st.sidebar.date_input("Start Date (Quality)", pd.to_datetime("2022-01-01"))
-        q_end   = st.sidebar.date_input("End Date (Quality)",   pd.to_datetime("today"))
+        #st.sidebar.subheader("Quality Factor Portfolio")
+        #q_start = st.sidebar.date_input("Start Date (Quality)", pd.to_datetime("2022-01-01"))
+        #q_end   = st.sidebar.date_input("End Date (Quality)",   pd.to_datetime("today"))
 
         portfolio_start = st.date_input("Portfolio Start Date", pd.to_datetime("2022-01-01"),key = "key_management_1")
         portfolio_end   = st.date_input("Portfolio End Date",   pd.to_datetime("today"),key = "key_management_2")
@@ -1505,17 +1387,10 @@ elif tab == "Strategy Development":
         # 1) Date inputs (in the sidebar, with unique keys)
         portfolio_start_d = st.date_input("Portfolio Start Date", pd.to_datetime("2022-01-01"), key = "qd_start_1")
         portfolio_end_d   = st.date_input("Portfolio End Date",   pd.to_datetime("today"), key = "qd_end_1")
-        st.sidebar.subheader("Quality Dividend Portfolio")
-        qd_start = st.sidebar.date_input(
-            "Quality Dividend Start Date",
-            value=portfolio_start_d,       # reuse your main portfolio_start
-            key="qd_start"
-        )
-        qd_end = st.sidebar.date_input(
-            "Quality Dividend End Date",
-            value=portfolio_end_d,         # reuse your main portfolio_end
-            key="qd_end"
-        )
+        #st.sidebar.subheader("Quality Dividend Portfolio")
+        
+        qd_start = portfolio_start_d
+        qd_end   = portfolio_end_d
 
         # 2) Ticker list + benchmark
         quality_dividend_tickers = [
