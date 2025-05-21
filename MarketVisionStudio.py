@@ -12,10 +12,6 @@ from plotly.subplots import make_subplots
 from fredapi import Fred
 import matplotlib.dates as mdates 
 from scipy.stats import gaussian_kde
-
-
-
-
 sns.set_theme(style="whitegrid")
 
 # --- Caching Yahoo Finance functions ---
@@ -102,12 +98,12 @@ if tab == "Asset Snapshot":
 
 
 elif tab == "Statistical Insights":
-    st.sidebar.header("Settings: Statistical Insights")
+    st.sidebar.header("Settings: Rolling Daily Average Returns")
     rolling_ticker = st.sidebar.text_input("Ticker for rolling heatmap", value="SPY", key="heatmap_ticker")
     rolling_start_date = st.sidebar.date_input("Start date", pd.to_datetime("today") - pd.Timedelta(days=30), key="heatmap_start")
     rolling_end_date = st.sidebar.date_input("End date", pd.to_datetime("today"), key="heatmap_end")
 
-    st.sidebar.header("Settings: Sector/Commodity/Currency Heatmap")
+    st.sidebar.header("Settings: Daily Correlation Matrix")
     sector_start = st.sidebar.date_input("Start date for sector heatmap", pd.to_datetime("today") - pd.Timedelta(days=60), key="sector_start")
     sector_end = st.sidebar.date_input("End date for sector heatmap", pd.to_datetime("today"), key="sector_end")
 
@@ -580,7 +576,7 @@ if tab == "Asset Snapshot":
 
             
 elif tab == "Statistical Insights":
-    st.header("Statistical Insights")
+    st.header("Rolling Daily Average Returns")
 
     # Create two subtabs: one for VRC, one for Statistical Analysis
     chart_choice = st.radio(
