@@ -60,37 +60,14 @@ if tab == "Asset Snapshot":
         default=['AAPL','MSFT'],
         key="portfolio_stocks"
     )
-    # 2) Commodities
-    comm_list = ["CL=F","SI=F","NG=F"]  # Gold, Crude Oil, Silver, Natural Gas
-    selected_comm = st.sidebar.multiselect(
-        "Select Commodities:",
-        comm_list,
-        default=[],
-        key="portfolio_comm"
-    )
-    # 3) Currencies
-    fx_list = ["EURUSD=X","JPY=X","GBPUSD=X","AUDUSD=X"] 
-    selected_fx = st.sidebar.multiselect(
-        "Select FX Rates:",
-        fx_list,
-        default=[],
-        key="portfolio_fx"
-    )
-    # 4) Crypto
-    crypto_list = ["BTC-USD","LTC-USD"] 
-    selected_crypto = st.sidebar.multiselect(
-        "Select Cryptocurrencies:",
-        crypto_list,
-        default=["BTC-USD"],
-        key="portfolio_crypto"
-    )
+    
 
     # --- Date Range ---
     start_date = st.sidebar.date_input("Start date", pd.to_datetime("2017-01-01"), key="first_portfolio_start")
     end_date   = st.sidebar.date_input("End date",   pd.to_datetime("today"),    key="first_portfolio_end")
 
     # Combine all instruments
-    instruments = selected_stocks + selected_comm + selected_fx + selected_crypto
+    instruments = selected_stocks 
 
     if not instruments:
         st.info("Please select at least one instrument to display charts.")
@@ -148,45 +125,23 @@ if tab == "Asset Snapshot":
         fig = go.Figure()
 
     # 1) BTC on the right
-        fig.add_trace(go.Scatter(
-            x=prices.index,
-            y=prices['BTC-USD'],
-            name='BTC-USD',
-            yaxis='y2',
-            line=dict(color='gold')
-        ))
-
-        # 2) everything else on the left
-        for ticker in [c for c in prices.columns if c != 'BTC-USD']:
+        for ticker in prices.columns:
             fig.add_trace(go.Scatter(
-            x=prices.index,
-            y=prices[ticker],
-            name=ticker,
-            yaxis='y'
-        ))
+                x=prices.index,
+                y=prices[ticker],
+                name=ticker,
+                yaxis='y'
+            ))
 
-        # 3) Layout tweaks: only BTC axis grid off, legend underneath
         fig.update_layout(
-        template='plotly_dark',
-        yaxis=dict(
-            title='Stock Price',
-            showgrid=True
-        ),
-        yaxis2=dict(
-            title='Bitcoin Price',
-            overlaying='y',
-            side='right',
-            showgrid=False
-        ),
-        legend=dict(
-            orientation='h',
-            x=0.5,
-            xanchor='center',
-            y=-0.25,       # push legend below chart
-            yanchor='top'
-        ),
-        margin=dict(b=140)  # make room under the plot
-    )
+            template='plotly_dark',
+            yaxis=dict(title='Price'),
+            legend=dict(
+                orientation='h',
+                x=0.5, xanchor='center',
+                y=-0.2, yanchor='top'
+            )
+        )
 
         st.plotly_chart(fig, use_container_width=True)
 
@@ -426,7 +381,22 @@ if tab == "Asset Snapshot":
             
     # ----- INTEREST RATES (FRED spreads) -----
     elif chart_choice == "Interest Rates":
-        st.subheader("📈 Interest Rate Spreads")
+        st.subheader("Interest Rate Spreads")
+        st.markdown(
+        """
+        **What are Interest Rate Spreads?**  
+        An interest rate spread is the difference between two yield rates—typically
+        a long-term government bond minus a short-term rate.  
+        
+        - **10Y − 3M Treasury Spread (T10Y3M):** A classic recession signal: when
+          short-term rates exceed long-term (i.e. an inverted curve), economic
+          growth often slows.  
+        - **5Y − Fed Funds Spread (T5YFF):** Shows how market expectations for
+          Fed policy diverge from today’s overnight rate.  
+        - **TED Spread:** The gap between 3-month LIBOR and 3-month T-bill, a
+          gauge of banking-sector stress.
+        """
+        )
         series_codes = {
             "10Y − 3M Treasury Spread":         "T10Y3M",
             "5Y − Fed Funds Rate Spread":        "T5YFF",
@@ -448,6 +418,17 @@ if tab == "Asset Snapshot":
             st.plotly_chart(fig_ir, use_container_width=True)
     else:
         st.subheader("Volatility Indices")
+
+        st.markdown(
+        """
+        **What are Volatility Indices?**  
+        A volatility index shows the market’s expectation of future volatility, as implied by option prices:
+
+        - **VIX (Equity):** Often called the “fear gauge,” it’s derived from S&P 500 option prices and reflects expected 30-day equity volatility.  
+        - **EVZ (Euro–Dollar FX):** Measures 30-day implied volatility on EUR/USD options—useful for currency risk.  
+        - **GVZ (Gold):** Tracks 30-day implied volatility in gold futures options, a barometer of precious-metal market stress.
+        """
+        )
 
         # 1) Download the three volatility series
         vix = yf.download("^VIX", start=start_date, end=end_date, progress=False)["Close"]
@@ -581,7 +562,7 @@ elif tab == "Statistical Insights":
     # Create two subtabs: one for VRC, one for Statistical Analysis
     chart_choice = st.radio(
         "Select chart to display:",
-        ["Returns & Correlation", "Momentum Analysis","Reversion Analysis","CAPM"],
+        ["Returns & Correlation", "Momentum Analysis","CAPM"],
         horizontal=True,
         key="Trend Statistics"
     )
@@ -958,112 +939,6 @@ elif tab == "Statistical Insights":
                 Use this volatility report in tandem with your correlation and seasonality analyses to craft a well-balanced, resilient strategy.
                 """)
 
-    elif chart_choice == "Reversion Analysis":
-        import pandas as pd
-        import yfinance as yf
-        import statsmodels.tsa.stattools as ts
-        import plotly.graph_objects as go
-
-        def adf_gridsearch_multi(tickers,
-                                start_date,
-                                end_date,
-                                window_years=5,
-                                step_years=1):
-            """
-            Runs ADF on each rolling window, returns two DataFrames:
-            - pval_df: pivot of actual p-values
-            - stat_df: 1 if pval < 0.10 (stationary at 10%), 0 otherwise, NaN if insufficient data
-            """
-            starts = pd.date_range(start=start_date,
-                                end=pd.to_datetime(end_date) - pd.DateOffset(years=window_years),
-                                freq=f'{step_years}Y')
-            records = []
-            for t in tickers:
-                for s in starts:
-                    e = s + pd.DateOffset(years=window_years)
-                    try:
-                        series = (yf.download(t, start=s, end=e, progress=False)['Close']
-                                    .dropna())
-                        if len(series) < 20:
-                            pval = None
-                        else:
-                            pval = ts.adfuller(series)[1]
-                    except Exception:
-                        pval = None
-                    records.append({
-                        'ticker': t,
-                        'year': s.year,
-                        'p_value': pval
-                    })
-            df = pd.DataFrame(records)
-            # pivot
-            pval_df = df.pivot(index='ticker', columns='year', values='p_value')
-            stat_df = (pval_df < 0.10).astype(float)  # will turn True→1.0, False→0.0, NaN stays NaN
-            return pval_df, stat_df
-
-        # --- run it ---
-        tickers = ['AUD=X','CAD=X','EUR=X','GBP=X','JPY=X']
-        pval_df, stat_df = adf_gridsearch_multi(
-            tickers,
-            start_date='2006-01-01',
-            end_date='2024-12-31'
-        )
-        # — above the figure —
-        st.markdown(
-        "**Overview:** This heatmap identifies which FX series exhibit stationarity (ADF p-value < 10%) across rolling 5-year windows."
-                    )
-        # --- Plotly heatmap ---
-        fig = go.Figure(go.Heatmap(
-            z=stat_df.values,
-            x=stat_df.columns.astype(str),
-            y=stat_df.index,
-            text=pval_df.round(3).fillna('N/A').values,
-            texttemplate='%{text}',
-            colorscale=[
-                [0.0, 'lightgray'],  # insufficient data or non-stationary
-                [0.49, 'lightgray'],
-                [0.51, 'green'],     # stationary
-                [1.0, 'green']
-            ],
-            colorbar=dict(
-                tickmode='array',
-                tickvals=[0,1],
-                ticktext=['Not Stationary','Stationary @10%'],
-            
-            ),
-            hovertemplate=
-                "<b>%{y}</b><br>" +
-                "Window start: %{x}<br>" +
-                "p-value: %{text}<extra></extra>"
-        ))
-
-        fig.update_layout(
-            title={
-                'text': "ADF Stationarity Heatmap (5-yr windows, step=1yr)",
-                'x': 0.5,             # 0 = left, 0.5 = center, 1 = right
-                'xanchor': 'center'   # anchor the title’s x-position at its center
-            },
-            xaxis_title="Window start year",
-            yaxis_title="Ticker",
-            yaxis=dict(autorange='reversed'),
-            xaxis=dict(tickangle=-45),
-            margin=dict(l=100, b=100, t=80),
-            width=950,
-            height=450,
-
-        )
-
-        #fig.show()
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown("""
-            #### Interpretation & Practical Considerations
-
-            - **Stationary windows (green):**  ADF p-value below 0.10 implies the level series has a stable mean and variance over that interval, making it suitable for ARMA‐style modeling without further differencing.  
-            - **Non-stationary or insufficient data (gray):**  Either the test failed to reject the unit-root null (p ≥ 0.10) or there were too few observations. In these cases, consider differencing or applying variance-stabilizing transforms.  
-            - **Regime sensitivity:**  Stationarity can shift due to macroeconomic changes, policy adjustments, or structural breaks—recompute this heatmap periodically to capture evolving behaviors.  
-            - **Strategy design:**  Use persistent green blocks to guide the lookback window for mean-reversion or cointegration strategies. Avoid relying on non-stationary intervals for models that assume constant moments.  
-    
-                            """)
     else:
         # file: statistical_insights.py
 
@@ -1082,7 +957,23 @@ elif tab == "Statistical Insights":
             return returns
 
         def capm_vs_regression_widget():
-            st.subheader("CAPM β vs OLS Regression")
+            st.subheader("CAPM β vs OLS Regression (Best viewed in Full Screen Mode)")
+            st.markdown("""
+            **What is CAPM?**  
+            The Capital Asset Pricing Model (CAPM) describes the relationship between systematic risk (beta, β) and expected return.  
+            - **β (beta):** Measures how sensitively your stock’s returns move with the overall market.  
+            - β > 1 → more volatile than the market  
+            - β < 1 → less volatile than the market  
+            - β = 1 → moves in lock-step with the market  
+            - **OLS Regression:** Ordinary Least Squares line fit to your stock’s daily returns vs. market returns.  
+
+            **How to interpret this chart:**  
+            1. **Slope of the green line (CAPM β):** Your stock’s “fair” compensation per unit of market risk.  
+            2. **Dashed purple line (OLS fit):** Empirical regression–based estimate of β and the intercept (α).  
+            3. **Scatter points:** Each point is one day’s pair of (market return, stock return).  
+
+            —  
+            """)
 
             # --- Inputs ---
             col1, col2 = st.columns(2)
@@ -1146,6 +1037,19 @@ elif tab == "Statistical Insights":
 
 elif tab == "Corporate Metrics Hub":
     st.header("Corporate Metrics Hub")
+    st.markdown(
+        """
+        Welcome to the Corporate Metrics Hub. Here you can compare key financial indicators
+        across up to five companies:
+
+        - **Return on Equity (ROE)**: Measures how efficiently a company uses shareholders’ equity to generate profits.  
+        - **Debt-to-Equity (D/E)**: Indicates the relative proportion of debt and equity a company uses to finance its assets.  
+        - **Free Cash Flow to Firm (FCFF)**: The cash flow available to all investors (debt + equity), after operating expenses and investments.  
+        - **Company Info**: Quick access to ticker, sector, and market-cap details.
+
+        Use the controls below to select your companies and metric of interest.
+        """
+    )
 
     # --- Company Selection ---
     largest_30 = [
@@ -1181,7 +1085,7 @@ elif tab == "Corporate Metrics Hub":
     dummy_current_fcff = {ticker: np.round(np.random.uniform(10, 100), 2) for ticker in largest_30}  # in billions
 
     # --- Dummy Historical Data ---
-    dummy_historical_roes = {ticker: {year: np.random.randint(10, 45) for year in range(2015, 2023)} for ticker in largest_30}
+    dummy_historical_roes = {ticker: {year: np.random.randint(10, 45) for year in range(2015, 2027)} for ticker in largest_30}
     dummy_historical_des = {ticker: {year: np.round(np.random.uniform(0.2, 2.5), 2) for year in range(2015, 2023)} for ticker in largest_30}
     dummy_historical_fcffs = {ticker: {year: np.round(np.random.uniform(10, 100), 2) for year in range(2015, 2023)} for ticker in largest_30}
 
@@ -1207,7 +1111,7 @@ elif tab == "Corporate Metrics Hub":
             f"Select Year Range for Historical {metric_type}:",
             min_value=2015,
             max_value=2025,
-            value=(2015, 2022),
+            value=(2015, 2026),
             key=f"{metric_type.replace(' ', '_')}_year_slider"
         )
 
@@ -1295,7 +1199,7 @@ elif tab == "Corporate Metrics Hub":
                     wiki_url = f"https://en.wikipedia.org/wiki/{name.replace(' ', '_')}"
                     st.markdown(f"[🔗 Read more on Wikipedia]({wiki_url})")
                 # ————— End Company Information Section —————
-    st.subheader("📈 Discounted Cash Flow Analysis")
+    st.subheader("Discounted Cash Flow Analysis")
 
     import streamlit as st
     import pandas as pd
@@ -1392,6 +1296,18 @@ elif tab == "Corporate Metrics Hub":
     import streamlit as st
 
     st.header("Growth of $1,000 Under Simple vs Compound Interest")
+    st.markdown(
+        """
+        Compare how a lump-sum deposit grows over time under two different approaches:
+        1. **Simple Interest**: Interest is paid only on the original principal each period.  
+        2. **Compound Interest**: Interest is reinvested, so you earn “interest on interest.”
+
+        **Key takeaways**:  
+        - The faster your compounding frequency (e.g., monthly vs. annually), the higher your final balance.  
+        - Over longer horizons, compound interest can dramatically outperform simple interest.  
+        - Use the controls below to tweak principal, rate, horizon, and compounding options.
+        """
+    )
 
     # ─── Inputs ────────────────────────────────────────────────────────
     P = st.number_input("Principal ($)", min_value=0.0, value=1000.0, step=100.0)
@@ -1440,7 +1356,7 @@ elif tab == "Corporate Metrics Hub":
 # --- Tab 4: Strategy Development ---
 
 elif tab == "Strategy Development":
-    st.header("🚀 Strategy Development Dashboard")
+    st.header("Strategy Development Dashboard")
 
     # Toggle to Select Strategy View
     strategy_view = st.radio(
@@ -1450,7 +1366,7 @@ elif tab == "Strategy Development":
     )
 
     if strategy_view == "TS Momentum Strategy":
-        st.subheader("📈 TS Momentum Strategy")
+        st.subheader("TS Momentum Strategy")
         st.markdown("""
             A rigorous comparison of a time-series momentum strategy against a passive buy-and-hold approach.  
             The analysis plots cumulative returns generated by a signal that enters and exits positions based 
@@ -1489,6 +1405,13 @@ elif tab == "Strategy Development":
             plt.close(fig) 
         else:
             st.warning("No price data available for the selected ticker and date range.")
+        st.markdown(
+            """
+            ### Future Development  
+            - **Multi-Asset Expansion:** Extend the strategy beyond equities (e.g. futures, FX, crypto) to demonstrate its robustness across different markets.  
+            - **Performance Analytics Dashboard:** Introduce deeper risk metrics (e.g. drawdown heatmaps, rolling Sharpe ratios, Calmar ratio) and interactive charts to explore sub-period performance.  
+             """
+        )
 
 
 
@@ -1705,9 +1628,9 @@ elif tab == "Strategy Development":
         import datetime
 
 
-        st.header("🎯 Efficient Frontier")
+        st.header("Efficient Frontier")
         st.markdown("""
-            **🚀 Efficient Frontier Explained**  
+            **Efficient Frontier Explained (Best viewed in Full Screen Mode)**  
             The white curve above is the set of _optimal_ portfolios that minimize risk for a given return.  
             - **Min Vol** (★) marks the lowest‐volatility portfolio.  
             - **Max Sharpe** (★) marks the portfolio with the highest reward‐to‐risk ratio.  
