@@ -581,7 +581,7 @@ elif tab == "Statistical Insights":
     # Create two subtabs: one for VRC, one for Statistical Analysis
     chart_choice = st.radio(
         "Select chart to display:",
-        ["Returns & Correlation", "Momentum Analysis","Reversion Analysis"],
+        ["Returns & Correlation", "Momentum Analysis","Reversion Analysis","CAPM"],
         horizontal=True,
         key="Trend Statistics"
     )
@@ -1062,7 +1062,85 @@ elif tab == "Statistical Insights":
             - **Non-stationary or insufficient data (gray):**  Either the test failed to reject the unit-root null (p ≥ 0.10) or there were too few observations. In these cases, consider differencing or applying variance-stabilizing transforms.  
             - **Regime sensitivity:**  Stationarity can shift due to macroeconomic changes, policy adjustments, or structural breaks—recompute this heatmap periodically to capture evolving behaviors.  
             - **Strategy design:**  Use persistent green blocks to guide the lookback window for mean-reversion or cointegration strategies. Avoid relying on non-stationary intervals for models that assume constant moments.  
-            """)
+    
+                            """)
+    else:
+        # file: statistical_insights.py
+
+        import streamlit as st
+        import yfinance as yf
+        import pandas as pd
+        import numpy as np
+        import plotly.graph_objects as go
+
+        @st.cache_data(ttl=3600)
+        def load_returns(market_symbol: str, portfolio_symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
+            prices = yf.download([market_symbol, portfolio_symbol],
+                                start=start_date, end=end_date)['Close']
+            returns = prices.pct_change().dropna()
+            returns.columns = ['market_returns', 'portfolio_returns']
+            return returns
+
+        def capm_vs_regression_widget():
+            st.subheader("CAPM β vs OLS Regression")
+
+            # --- Inputs ---
+            col1, col2 = st.columns(2)
+            with col1:
+                market_symbol = st.text_input("Market index ticker", "^GSPC")
+                portfolio_symbol = st.text_input("Portfolio ticker", "AAPL")
+            with col2:
+                start_date = st.date_input("Start date", pd.to_datetime("2015-01-01"))
+                end_date   = st.date_input("End date",   pd.to_datetime("2020-01-01"))
+
+            if st.button("Update Chart"):
+                # 1) Load & align returns
+                df = load_returns(market_symbol, portfolio_symbol, start_date, end_date)
+
+                # 2) Compute CAPM β
+                cov_xy    = df['market_returns'].cov(df['portfolio_returns'])
+                var_x     = df['market_returns'].var()
+                beta_capm = cov_xy / var_x
+
+                # 3) Fit OLS regression
+                slope, intercept = np.polyfit(df['market_returns'], df['portfolio_returns'], 1)
+
+                # 4) Prepare lines
+                x_vals = np.linspace(df['market_returns'].min(), df['market_returns'].max(), 100)
+                y_capm = beta_capm * x_vals
+                y_reg  = intercept + slope * x_vals
+
+                # 5) Build Plotly figure
+                fig = go.Figure([
+                    go.Scatter(
+                        x=df['market_returns'], y=df['portfolio_returns'],
+                        mode='markers', name='Data',
+                        marker=dict(size=6, opacity=0.7, line=dict(width=0.5, color='DarkSlateGrey'))
+                    ),
+                    go.Scatter(
+                        x=x_vals, y=y_capm, mode='lines',
+                        name=f'CAPM β line (β={beta_capm:.2f})',
+                        line=dict(color='green', width=2)
+                    ),
+                    go.Scatter(
+                        x=x_vals, y=y_reg, mode='lines',
+                        name=f'OLS line (slope={slope:.2f}, α={intercept:.4f})',
+                        line=dict(color='purple', width=2, dash='dash')
+                    )
+                ])
+                fig.update_layout(
+                    template='plotly_white',
+                    xaxis_title='Market Returns',
+                    yaxis_title='Portfolio Returns',
+                    legend=dict(bordercolor='LightGray', borderwidth=1)
+                )
+
+                # 6) Render
+                st.plotly_chart(fig, use_container_width=True)
+
+        # — in your main app file, under the Statistical Insights tab: —
+        capm_vs_regression_widget()
+
 
 
 
@@ -1124,7 +1202,7 @@ elif tab == "Corporate Metrics Hub":
 
         st.markdown("---")
 
-        st.subheader(f"📊 Historical {metric_type} (Bar Plot)")
+        st.subheader(f"Historical {metric_type} (Bar Plot)")
         start_year, end_year = st.slider(
             f"Select Year Range for Historical {metric_type}:",
             min_value=2015,
@@ -1217,8 +1295,147 @@ elif tab == "Corporate Metrics Hub":
                     wiki_url = f"https://en.wikipedia.org/wiki/{name.replace(' ', '_')}"
                     st.markdown(f"[🔗 Read more on Wikipedia]({wiki_url})")
                 # ————— End Company Information Section —————
+    st.subheader("📈 Discounted Cash Flow Analysis")
 
-    
+    import streamlit as st
+    import pandas as pd
+    import numpy as np
+    import hashlib
+    import plotly.graph_objects as go
+
+    # --- DCF Settings ---
+    dcf_ticker = st.selectbox(
+        "Select company for DCF analysis:",
+        options=largest_30,  # your list of tickers
+        key="dcf_ticker"
+    )
+
+    # --- Build deterministic FCF projection via ticker‐seeded RNG ---
+    # create a 32‐bit seed from the ticker string
+    seed = int(hashlib.sha256(dcf_ticker.encode()).hexdigest(), 16) & 0xFFFFFFFF
+    rng  = np.random.default_rng(seed)
+
+    years = [2023, 2024, 2025, 2026, 2027]
+    # generate five random FCFs between $5bn and $15bn
+    fcf   = list(np.round(rng.uniform(5, 15, size=len(years)), 2))
+
+    # assumptions
+    r = 0.10   # discount rate
+    g = 0.02   # terminal growth
+
+    # discount factors & PV of each FCF
+    disc_factors = [1 / (1 + r) ** (i + 1) for i in range(len(years))]
+    pv_fcf       = [round(f * d, 2) for f, d in zip(fcf, disc_factors)]
+
+    # terminal value and its PV
+    terminal_value = fcf[-1] * (1 + g) / (r - g)
+    pv_terminal    = round(terminal_value * disc_factors[-1], 2)
+
+    # --- Build DataFrame ---
+    df_dcf = pd.DataFrame({
+        "Year":             [str(y) for y in years] + ["Terminal"],
+        "FCF ($ bn)":       fcf + [None],
+        "Discount Factor":  [round(d, 3) for d in disc_factors] + [None],
+        "PV of FCF ($ bn)": pv_fcf + [pv_terminal]
+    }).set_index("Year")
+
+    st.markdown("## Discounted Cash Flow Analysis")
+    st.table(df_dcf)
+
+    # --- NPV Waterfall ---
+    labels  = [f"FCF {y}" for y in years] + ["Terminal Value"]
+    values  = pv_fcf + [pv_terminal]
+    measure = ["relative"] * len(years) + ["total"]
+
+    fig = go.Figure(
+        go.Waterfall(
+            x=labels,
+            y=values,
+            measure=measure,
+            increasing={"marker": {"color": "green"}},
+            totals={"marker": {"color": "blue"}}
+        )
+    )
+
+    fig.update_layout(
+        title=f"NPV Waterfall for {dcf_ticker}",
+        yaxis_title="PV (USD bn)",
+        template="plotly_dark",
+        showlegend=False
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+    # … your existing DCF table and waterfall code …
+
+    #st.plotly_chart(fig, use_container_width=True)
+
+    # — now add explanatory text —
+    st.markdown(
+        """
+        **How to read this analysis:**  
+        1. The table above lists our **five-year free cash flow (FCF)** projections, the **discount factors** used to bring each year’s cash flow to present value,  
+        and the resulting **present value (PV) of each FCF**. The final “Terminal” row shows the perpetuity value of year 5’s cash flow, also discounted back.  
+        2. The waterfall chart below visualizes how each year’s PV (green bars) cumulatively builds to the total net present value (blue bar).  
+        3. Together, these two views let you see both the line-item detail (yearly cash flows) and the overall NPV impact of the investment under our buy-and-hold assumptions.  
+
+        **Key assumptions:**  
+        - **Discount rate (r):** 10% per annum  
+        - **Terminal growth (g):** 2% beyond year 5  
+        - **Deterministic projections:** We seed our random FCF draws by ticker so that each symbol always yields the same five-year numbers.  
+        """
+    )
+
+    # --- Inputs ---
+    import numpy as np
+    import pandas as pd
+    import plotly.express as px
+    import streamlit as st
+
+    st.header("Growth of $1,000 Under Simple vs Compound Interest")
+
+    # ─── Inputs ────────────────────────────────────────────────────────
+    P = st.number_input("Principal ($)", min_value=0.0, value=1000.0, step=100.0)
+    r = st.number_input("Annual rate (%)", min_value=0.0, value=5.0, step=0.1) / 100
+    years = st.slider("Time horizon (years)", 1, 30, 10)
+
+    # allow multiple choices
+    freqs = st.multiselect(
+        "Compounding frequency",
+        ["Annually", "Semi-Annually", "Quarterly", "Monthly"],
+        default=["Annually", "Semi-Annually", "Quarterly", "Monthly"]
+    )
+
+    # map text → n per year
+    n_map = {
+        "Annually": 1,
+        "Semi-Annually": 2,
+        "Quarterly": 4,
+        "Monthly": 12
+    }
+
+    # ─── Build data table ─────────────────────────────────────────────
+    t = np.arange(0, years + 1)
+    data = {
+        "Year": t,
+        "Simple Interest": P * (1 + r * t),
+    }
+
+    for freq in freqs:
+        n = n_map[freq]
+        data[f"{freq} Compound"] = P * (1 + r / n) ** (n * t)
+
+    df = pd.DataFrame(data)
+
+    # ─── Plot ────────────────────────────────────────────────────────
+    fig = px.line(
+        df,
+        x="Year",
+        y=[c for c in df.columns if c != "Year"],
+        labels={"value": "Balance ($)", "variable": "Method"},
+        template="plotly_dark",
+        title="Growth of $1,000 Under Simple vs. Compound Interest"
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- Tab 4: Strategy Development ---
 
