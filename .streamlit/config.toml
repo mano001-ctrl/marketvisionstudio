@@ -1,0 +1,10 @@
+[theme]
+# Force the light base theme
+base="light"
+
+# (optional) tweak your primary and secondary colors to match your brand
+primaryColor="#2C7BE5"
+backgroundColor="#FFFFFF"
+secondaryBackgroundColor="#F0F2F6"
+textColor="#333333"
+font="sans serif"
