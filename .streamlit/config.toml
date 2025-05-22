@@ -4,7 +4,7 @@ base="light"
 
 # (optional) tweak your primary and secondary colors to match your brand
 primaryColor="#2C7BE5"
-backgroundColor="#FFFFFF"
-secondaryBackgroundColor="#F0F2F6"
+backgroundColor="#f0f0f0" 
+secondaryBackgroundColor="#e0e0e0"
 textColor="#333333"
 font="sans serif"
