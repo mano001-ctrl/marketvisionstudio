@@ -1412,9 +1412,294 @@ elif tab == "Strategy Development":
             - **Performance Analytics Dashboard:** Introduce deeper risk metrics (e.g. drawdown heatmaps, rolling Sharpe ratios, Calmar ratio) and interactive charts to explore sub-period performance.  
              """
         )
+        # ── At the top of MarketVisionStudio.py ────────────────────────────────────────
+        import streamlit as st
+        import yfinance as yf
+        import pandas as pd
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from sklearn.preprocessing import StandardScaler
+        import tensorflow as tf
+        import warnings
+        from keras.callbacks  import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
 
+        from keras.models     import Model
+        from keras.layers     import (
+            Input, LSTM, Dense, Dropout, BatchNormalization,
+            RepeatVector, Lambda, Multiply
+        )
+        from keras.losses     import Huber
+        from keras.optimizers import Adam
 
+        warnings.simplefilter("ignore", UserWarning)
+
+
+        # ── Helper functions (exactly as in your notebook) ────────────────────────────
+        def get_base_price(x):
+            # x.shape = (batch, timesteps, features)
+            last_close = x[:, -1, 3]  # feature index 3 was “Close”
+            return tf.expand_dims(last_close, axis=-1)
+
+        def compute_gain(log_ret):
+            return tf.exp(log_ret)
+
+
+        # ── Build & cache the identical seq2seq LSTM model ─────────────────────────────
+        @st.cache_resource
+        def load_lstm_model(weights_path: str, timestep: int, n_features: int):
+            # Encoder
+            enc_in  = Input(shape=(timestep, n_features), name="encoder_input")
+            enc_l1  = LSTM(128, return_sequences=False)(enc_in)
+            enc_bn  = BatchNormalization()(enc_l1)
+            enc_do  = Dropout(0.3)(enc_bn)
+
+            # Decoder
+            dec_rep = RepeatVector(timestep)(enc_do)
+            dec_l1  = LSTM(64, return_sequences=False)(dec_rep)
+            dec_bn  = BatchNormalization()(dec_l1)
+            dec_do  = Dropout(0.3)(dec_bn)
+
+            # Output head
+            log_ret  = Dense(1, activation="linear", name="log_return")(dec_do)
+            base_pr  = Lambda(get_base_price, name="base_price")(enc_in)
+            gain     = Lambda(compute_gain,  name="exp_return")(log_ret)
+            pred_pr  = Multiply(name="predicted_price")([base_pr, gain])
+
+            model = Model(inputs=enc_in, outputs=pred_pr, name="seq2seq_price_model")
+            model.compile(
+                loss=Huber(delta=1.0),
+                optimizer=Adam(learning_rate=1e-4, clipnorm=1.0)
+            )
+
+            model.load_weights(weights_path)
+            return model
+
+
+        # ── LSTM Strategy section ─────────────────────────────────────────────────────
+        # ── Helpers & Model Builders ───────────────────────────────────────────────────
+
+        def get_base_price(x):
+            last_close = x[:, -1, 3]  # feature index 3 == “Close”
+            return tf.expand_dims(last_close, axis=-1)
+
+        def compute_gain(log_ret):
+            return tf.exp(log_ret)
+
+        @st.cache_resource
+        def load_lstm_model(weights_path: str, timestep: int, n_features: int):
+            """Builds & compiles the seq2seq LSTM, loads weights for inference."""
+            enc_in  = Input((timestep, n_features), name="encoder_input")
+            enc_l1  = LSTM(128, return_sequences=False)(enc_in)
+            enc_bn  = BatchNormalization()(enc_l1)
+            enc_do  = Dropout(0.3)(enc_bn)
+
+            dec_rep = RepeatVector(timestep)(enc_do)
+            dec_l1  = LSTM(64, return_sequences=False)(dec_rep)
+            dec_bn  = BatchNormalization()(dec_l1)
+            dec_do  = Dropout(0.3)(dec_bn)
+
+            log_ret = Dense(1, activation="linear", name="log_return")(dec_do)
+            base_pr = Lambda(get_base_price, name="base_price")(enc_in)
+            gain    = Lambda(compute_gain,  name="exp_return")(log_ret)
+            pred_pr = Multiply(name="predicted_price")([base_pr, gain])
+
+            m = Model(enc_in, pred_pr, name="seq2seq_price_model")
+            m.compile(
+                loss=Huber(delta=1.0),
+                optimizer=Adam(learning_rate=1e-4, clipnorm=1.0)
+            )
+            m.load_weights(weights_path)
+            return m
+
+        def train_lstm_model(X_np, y_np, timestep: int) -> str:
+            """Rebuilds the LSTM, trains it, writes checkpoint.weights.keras, returns filepath."""
+            # build identical architecture (no load_weights)
+            enc_in  = Input((timestep, X_np.shape[2]), name="encoder_input")
+            enc_l1  = LSTM(128, return_sequences=False)(enc_in)
+            enc_bn  = BatchNormalization()(enc_l1)
+            enc_do  = Dropout(0.3)(enc_bn)
+            dec_rep = RepeatVector(timestep)(enc_do)
+            dec_l1  = LSTM(64, return_sequences=False)(dec_rep)
+            dec_bn  = BatchNormalization()(dec_l1)
+            dec_do  = Dropout(0.3)(dec_bn)
+
+            log_ret = Dense(1, activation="linear", name="log_return")(dec_do)
+            base_pr = Lambda(get_base_price, name="base_price")(enc_in)
+            gain    = Lambda(compute_gain,  name="exp_return")(log_ret)
+            pred_pr = Multiply(name="predicted_price")([base_pr, gain])
+
+            m = Model(enc_in, pred_pr, name="seq2seq_price_model")
+            m.compile(
+                loss=Huber(delta=1.0),
+                optimizer=Adam(learning_rate=1e-4, clipnorm=1.0),
+                metrics=['mse','mae']
+            )
+
+            # callbacks
+            fp = "checkpoint.weights.keras"
+            cp  = ModelCheckpoint(fp, monitor='val_loss', save_best_only=True, verbose=0)
+            es  = EarlyStopping(monitor='val_loss', patience=12, restore_best_weights=True, verbose=0)
+            rlr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=6, min_lr=1e-6, verbose=0)
+
+            # Streamlit progress UI
+            epochs        = 100
+            prog_bar      = st.progress(0)
+            status_holder = st.empty()
+            hist = {"loss": [], "val_loss": []}
+            chart = st.line_chart(pd.DataFrame(hist))
+
+            class ProgressCB(tf.keras.callbacks.Callback):
+                def on_epoch_end(self, epoch, logs=None):
+                    p = (epoch+1)/epochs
+                    prog_bar.progress(p)
+                    status_holder.text(f"Epoch {epoch+1}/{epochs}  loss: {logs['loss']:.3f}  val_loss: {logs['val_loss']:.3f}")
+                    hist["loss"].append(logs["loss"])
+                    hist["val_loss"].append(logs["val_loss"])
+                    chart.add_rows(pd.DataFrame(hist, index=range(1,len(hist["loss"])+1)))
+
+            with st.spinner("Retraining LSTM… this may take a couple minutes"):
+                m.fit(
+                    X_np, y_np,
+                    validation_split=0.2,
+                    epochs=epochs,
+                    batch_size=32,
+                    callbacks=[cp, es, rlr, ProgressCB()],
+                    verbose=0
+                )
+            st.success("Retraining complete—best weights saved.")
+            return fp
+
+
+        # ── LSTM Strategy section ─────────────────────────────────────────────────────
+        st.subheader("LSTM-Based Prediction Strategy")
+        st.markdown("""
+            Click **Retrain LSTM Model** to re-fit on IBKR.csv, otherwise
+            we’ll load the existing checkpoint weights for inference.
+        """)
+
+        # Retrain toggle
+        retrain_btn = st.sidebar.button("Retrain LSTM Model")
+
+        # 1) Load & preprocess IBKR.csv
+        df = pd.read_csv("IBKR.csv", index_col=0, parse_dates=True).dropna()
+        df.index = pd.to_datetime(df.index)
+        X = df[['Open','High','Low','Close','Volume']]
+        y = df['Last'].shift(-1).dropna()
+        y.index = pd.to_datetime(y.index)
+
+        cutoff   = X.index.max() - pd.DateOffset(days=150)
+        X_train  = X.loc[X.index < cutoff]
+        X_test   = X.loc[X.index >= cutoff]
+        y_train  = y.loc[y.index < cutoff]
+        y_test   = y.loc[y.index >= cutoff]
+
+        # scale
+        scaler    = StandardScaler().fit(X_train)
+        X_train[:] = scaler.transform(X_train)
+        X_test[:]  = scaler.transform(X_test)
+
+        # sliding windows
+        timestep = 20
+        # build sliding windows safely
+        def make_seq(X_df, y_ser, step):
+            seqs, labs = [], []
+            max_i = min(len(X_df), len(y_ser))
+            for i in range(step, max_i):
+                seqs.append(X_df.iloc[i-step:i].values)
+                labs.append(y_ser.iloc[i])
+            idx = X_df.index[step:max_i]
+            return np.array(seqs), np.array(labs), idx
+
+        # build sliding windows
+        X_train_np, y_train_np, _       = make_seq(X_train, y_train, timestep)
+        X_test_np,  y_test_np,  test_idx = make_seq(X_test,  y_test,  timestep)
+
+        # force numeric dtype (float32)
+        X_train_np = X_train_np.astype(np.float32)
+        y_train_np = y_train_np.astype(np.float32)
+        X_test_np  = X_test_np.astype(np.float32)
+        y_test_np  = y_test_np.astype(np.float32)
+
+        # 2) Retrain if requested
+        if retrain_btn:
+            load_lstm_model.clear()                      # clear cached inference graph
+            weights_fp = train_lstm_model(X_train_np, y_train_np, timestep)
+        else:
+            weights_fp = "checkpoint.weights.keras"
+            st.info("Using existing weights—click Retrain to re-fit.")
+
+        # 3) Inference
+        model = load_lstm_model(weights_fp, timestep, n_features=5)
+        preds = model.predict(X_test_np, verbose=0).flatten()
+        perf  = pd.DataFrame({"Predicted": preds, "Actual": y_test_np}, index=test_idx)
+
+        # 4) Plot Spread + BBands
+        Spread = perf.Actual - perf.Predicted
+        m      = Spread.expanding().mean()
+        s      = Spread.expanding().std()
+        k      = 2
+
+        fig1, ax1 = plt.subplots(figsize=(10,4))
+        ax1.plot(Spread, label="Spread")
+        ax1.plot(m + k*s, "--", label="Upper")
+        ax1.plot(m - k*s, "--", label="Lower")
+        ax1.set_title("Spread vs Predicted (±2σ)")
+        ax1.legend(loc="upper left")
+        st.pyplot(fig1); plt.close(fig1)
+
+        # 5) Predicted vs Actual + signals
+        fig2, ax2 = plt.subplots(figsize=(10,4))
+        ax2.plot(perf.Predicted, label="Predicted")
+        ax2.plot(perf.Actual,    label="Actual")
+        buy_mask  = Spread < (m - k*s)
+        sell_mask = Spread > (m + k*s)
+        ax2.scatter(perf.index[buy_mask],  perf.Actual[buy_mask],  marker="^", c="green", s=50, label="Buy")
+        ax2.scatter(perf.index[sell_mask], perf.Actual[sell_mask], marker="v", c="red",   s=50, label="Sell")
+        ax2.set_title("Predicted vs Actual with Buy/Sell Signals")
+        ax2.legend(loc="upper left")
+        st.pyplot(fig2); plt.close(fig2)
+
+                # … your plotting code …
+
+        st.markdown("""
+        ### LSTM-Based Prediction Strategy — Component Breakdown
+
+        **1. Data Ingestion & Pre-processing**  
+        - We load `IBKR.csv`, parse dates, and shift the `Last` price by one day to form our label `y`.  
+        - We split the series at the 150-day cutoff into **train** and **test** sets.  
+        - Features (`Open, High, Low, Close, Volume`) are scaled via `StandardScaler` to zero mean & unit variance.
+
+        **2. Sliding Window Construction**  
+        - A fixed look-back of **20** timesteps is used.  
+        - For each index *i*, the LSTM sees the matrix of the previous 20 days’ features (shape `(20, 5)`).  
+        - Corresponding label is the next-day `Last` price at *i*.
+
+        **3. Model Architecture**  
+        - **Seq2Seq LSTM Encoder**: 128 units → BatchNorm → Dropout(0.3)  
+        - **Seq2Seq LSTM Decoder**: RepeatVector(20) → 64 units → BatchNorm → Dropout(0.3)  
+        - **Output Head**:
+          - Dense→linear predicts the **log-return**.  
+          - We extract the **base price** (last close) via a `Lambda` layer, exponentiate our log-return, and multiply back to get the absolute next-day price.
+
+        **4. Retraining vs. Inference**  
+        - Click **Retrain LSTM Model** in the sidebar to re-fit the network on the training split (with live progress).  
+        - Otherwise, the app loads the existing `checkpoint.weights.keras` for instant inference.
+
+        **5. Spread & Bollinger Band Analysis**  
+        - We compute **Spread** = Actual − Predicted.  
+        - We plot the expanding mean ±2×standard-deviation to highlight over-bought (sell) and over-sold (buy) regions.
+
+        **6. Signal Generation & Visualizations**  
+        - **Chart 1** shows the Spread with its Bollinger bands.  
+        - **Chart 2** overlays Predicted vs Actual price, marking:
+          - ▶️ **Buy** when Spread < Lower Band  
+          - 🔻 **Sell** when Spread > Upper Band  
+
+        This systematic framework demonstrates how a pre-trained LSTM can forecast short-term price movements, quantify prediction error via Spread, and generate rule-based entry/exit signals.
+        """)
+
+        
     elif strategy_view == "Comparative Portfolio Benchmarking":
         st.markdown("""
         Comparative Portfolio Benchmarking provides a concurrent assessment of multiple passive equity portfolios
