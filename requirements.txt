@@ -1,3 +1,4 @@
+
 streamlit
 yfinance
 pandas
@@ -10,6 +11,6 @@ fredapi
 pyngrok
 statsmodels
 hurst
+
 scikit-learn
-tensorflow
-keras
+tf-nightly
