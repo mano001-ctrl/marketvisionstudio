@@ -12,3 +12,4 @@ venv/
 # Streamlit cache & logs
 .streamlit/
 node_modules
+-e ".venv/\n__pycache__/\n*.pyc"  
