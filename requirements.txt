@@ -10,3 +10,6 @@ fredapi
 pyngrok
 statsmodels
 hurst
+scikit-learn
+tensorflow
+keras
