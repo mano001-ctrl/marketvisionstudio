@@ -19,10 +19,10 @@
 ```plaintext
 MarketVisionStudio/
 ├── data_connectors/          # API wrappers and ingestion scripts
-│   ├── ibkr_connector.py     # Interactive Brokers market data client
-│   ├── alpha_vantage.py      # Alpha Vantage REST API integration
-│   ├── quandl_connector.py   # Quandl data downloader
-│   └── yfinance.py           # Yahoo Finance data loader
+│   ├── ibkr_connector.py     # Interactive Brokers market data client (coming soon)
+│   ├── alpha_vantage.py      # Alpha Vantage REST API integration (coming soon)
+│   ├── quandl_connector.py   # Quandl data downloader (coming soon)
+│   └── yfinance.py           # Yahoo Finance data loader (coming soon)
 │
 ├── notebooks/                # Jupyter notebooks for exploration and backtests
 │   ├── Live_Market_Dashboard.ipynb       # Real-time streaming dashboard
@@ -33,7 +33,7 @@ MarketVisionStudio/
 │
 ├── dashboards/               # Streamlit and Voilà applications
 │   ├── streamlit_app.py      # Main Streamlit dashboard
-│   └── voila_template.ipynb  # Voilà template for dashboard deployment
+│   
 │
 ├── reports/                  # Sample generated performance and risk reports
 │   └── sample_report.pdf     # Example output
