@@ -555,7 +555,7 @@ if tab == "Asset Snapshot":
 
             
             st.markdown("---")
-            st.subheader("📈 Implied Volatility Surface (Static Example)")
+            st.subheader("Implied Volatility Surface (Static Example)")
             import numpy as np
             import plotly.graph_objects as go
 
