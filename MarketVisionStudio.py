@@ -627,7 +627,7 @@ if tab == "Asset Snapshot":
                 
                  ---
                 
-                 #### 🏛Regulatory Demand for Tail Protection  
+                 #### Regulatory Demand for Tail Protection  
                  - Financial institutions (banks, insurers, pensions) **must hedge tail risk** to meet regulatory requirements like **Basel III**, **Solvency II**, or **FRTB**.  
                  - **Tail hedges reduce capital charges** and improve solvency/funding ratios by shaping the loss distribution.  
                  - This creates a **structural, persistent bid** for tail protection, further inflating implied vol in the left tail.
