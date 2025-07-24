@@ -600,41 +600,41 @@ if tab == "Asset Snapshot":
             st.plotly_chart(fig_vol_surface, use_container_width=True)
 
             st.markdown("""
-                 ### 🔎 Interpreting the Implied Volatility Surface: Risk, Behavior, and Regulation  
+                 ### Interpreting the Implied Volatility Surface: Risk, Behavior, and Regulation  
                 
                  This 3D surface shows how **implied volatility** changes with respect to **strike price** and **time to maturity**. But beyond the surface lies a rich ecosystem of pricing anomalies and behavioral drivers:
                 
                  ---
                 
-                 #### 📉 Variance Premium  
+                 #### Variance Premium  
                  - **Implied volatility (IV)** systematically exceeds **realized volatility (RV)** — this difference is the **variance risk premium (VRP)**.  
                  - Investors pay a premium for protection against volatility spikes, which creates an opportunity for sellers to earn this premium consistently.  
                  - This VRP is embedded in option prices — especially in short-dated, out-of-the-money (OTM) puts — and steepens the skew you see in the surface.
                 
                  ---
                 
-                 #### 🔁 Straddle Strategy and Surface Interpretation  
+                 #### Straddle Strategy and Surface Interpretation  
                  - A **straddle** involves buying or selling both a call and a put at the same strike — typically at-the-money (ATM).  
                  - The notebook's example shows that **selling straddles** profits when actual volatility is less than implied — i.e., harvesting the **variance premium**.  
                  - These strategies implicitly short the volatility surface, profiting from mean-reverting vol but exposing the trader to tail events.
                 
                  ---
                 
-                 #### 🧠 Loss Aversion and Overpriced Tails  
+                 #### Loss Aversion and Overpriced Tails  
                  - As per **Prospect Theory**, investors **dislike losses more than they like gains**.  
                  - This behavioral trait causes **deep OTM puts to be overpriced**, leading to a skewed surface (higher IV for lower strikes).  
                  - Loss-averse institutions **overpay for insurance** — skewing demand and elevating tail prices.
                 
                  ---
                 
-                 #### 🏛️ Regulatory Demand for Tail Protection  
+                 #### 🏛Regulatory Demand for Tail Protection  
                  - Financial institutions (banks, insurers, pensions) **must hedge tail risk** to meet regulatory requirements like **Basel III**, **Solvency II**, or **FRTB**.  
                  - **Tail hedges reduce capital charges** and improve solvency/funding ratios by shaping the loss distribution.  
                  - This creates a **structural, persistent bid** for tail protection, further inflating implied vol in the left tail.
                 
                  ---
                 
-                 💡 **Key Takeaway**:  
+                 **Final Remarks**:  
                  The implied volatility surface is not just a pricing map — it’s a reflection of **fear, regulation, and systemic behavior**.  
                  The steepness of the surface and the richness of the premium available are a result of:  
                  - Investors' **fear of rare losses (loss aversion)**  
