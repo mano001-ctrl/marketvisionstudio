@@ -639,6 +639,7 @@ if tab == "Asset Snapshot":
                     xaxis_title='Strike Price',
                     yaxis_title='Time to Maturity (Years)',
                     zaxis_title='Implied Volatility (%)',
+                    zaxis=dict(range=[18, 25])
                     camera=dict(eye=dict(x=1.5, y=1.5, z=1.2))
                 ),
                 width=900,
