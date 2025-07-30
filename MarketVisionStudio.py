@@ -621,7 +621,7 @@ if tab == "Asset Snapshot":
 
             # Set previous vol and current BS vol
             previous_vol = 20.0
-            bs_vol = 24.0
+            bs_vol = 22.0
 
             previous_vol_surface = np.full_like(market_vols, previous_vol)
             current_vol_surface = np.full_like(market_vols, bs_vol)
@@ -639,6 +639,7 @@ if tab == "Asset Snapshot":
                     xaxis_title='Strike Price',
                     yaxis_title='Time to Maturity (Years)',
                     zaxis_title='Implied Volatility (%)',
+                    zaxis=dict(range=[18, 25]),
                     camera=dict(eye=dict(x=1.5, y=1.5, z=1.2))
                 ),
                 width=900,
