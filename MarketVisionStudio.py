@@ -107,7 +107,7 @@ if tab == "Asset Snapshot":
     # Chart selector
     chart_choice = st.radio(
         "Select chart to display:",
-        ["Price Data", "Interest Rates", "Volatility Indices"],
+        ["Price Data", "Interest Rates", "Volatility"],
         horizontal=True,
         key="portfolio_dashboard_chart_choice"
     )
@@ -417,7 +417,7 @@ if tab == "Asset Snapshot":
             )
             st.plotly_chart(fig_ir, use_container_width=True)
     else:
-        st.subheader("Volatility Indices")
+        st.subheader("Volatility")
 
         st.markdown(
         """
