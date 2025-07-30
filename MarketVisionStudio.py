@@ -652,6 +652,51 @@ if tab == "Asset Snapshot":
             # Display in Streamlit
             st.plotly_chart(fig_static, use_container_width=True)
 
+            st.markdown("""
+            ### Comparing Black-Scholes vs Market-Implied Volatility Surfaces
+            
+            The implied volatility surface is more than a mathematical construct — it reflects actual trader behavior, risk perception, and market mechanics. The contrast between theoretical and market surfaces highlights the gap between assumption and reality.
+            
+            ---
+            
+            #### Black-Scholes Volatility Surface (Static Assumption)
+            - Assumes **constant volatility** across all strikes and maturities.
+            - The surface is **flat and featureless**, as seen in the static 3D plot.
+            - Ignores structural realities like **volatility smiles**, **skews**, and **term structure**.
+            - Useful for foundational theory, but **poor at capturing market nuances**.
+            
+            ---
+            
+            #### Market-Implied Volatility Surface (Empirical Observation)
+            - Derived from real option prices, showing how **volatility varies** by strike and maturity.
+            - Displays **skew** (higher IV for OTM puts), **term structure** (longer-dated options often pricier), and **smile effects**.
+            - Reflects **supply-demand dynamics**, **risk aversion**, and **hedging pressures**.
+            - This is the volatility that **traders use for pricing, hedging, and strategy design**.
+            
+            ---
+            
+            #### Why the Discrepancy Matters
+            - Black-Scholes assumes the world is smooth — but markets are jagged.
+            - Market-implied volatility captures **trader fear, positioning, and structural demand**.
+            - Trading strategies like **volatility arbitrage**, **delta-hedging**, and **tail-risk hedging** all rely on the **empirical surface**, not the flat Black-Scholes one.
+            
+            ---
+            
+            #### Practical Implication for Traders
+            - Using the Black-Scholes model in isolation can lead to **underestimating risk** and **mispricing options**.
+            - Most traders rely on **implied volatility surfaces from market data providers**, not theoretical models.
+            - **Sophisticated models** (e.g., SABR, Heston) attempt to fit the real-world surface better than Black-Scholes.
+            
+            ---
+            
+            **Final Remarks**:  
+            The Black-Scholes surface may look clean — but it’s an illusion.  
+            The **market-implied surface is messy, asymmetric, and reactive** — but it’s real.  
+            For anyone trading options seriously, **understanding this surface is critical** to navigating risk, pricing, and performance.
+            
+            """)
+
+
             import streamlit as st
             import numpy as np
             import plotly.graph_objects as go
