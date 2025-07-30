@@ -797,6 +797,52 @@ if tab == "Asset Snapshot":
 
             st.plotly_chart(fig_heston, use_container_width=True)
 
+            st.markdown("""
+            ### Heston Implied Volatility Surface: A Step Beyond Black-Scholes
+            
+            The Heston model addresses a core limitation of Black-Scholes — its assumption of constant volatility — by introducing **stochastic volatility**. The surface you see here reflects that evolution: it bends, slopes, and twists in ways that align more closely with real market observations.
+            
+            ---
+            
+            #### What the Heston Model Captures
+            - Volatility is no longer fixed — it **follows its own process**, evolving stochastically over time.
+            - The model introduces **mean reversion**, allowing volatility to spike during stress but drift back to a long-term average.
+            - This helps explain the **volatility smile and term structure** observed in the real world.
+            
+            ---
+            
+            #### Surface Interpretation
+            - Notice how **implied volatility is highest for short-dated, low-strike options** — a reflection of the market's concern about downside risk in the near term.
+            - As maturity increases or strike rises, **implied volatility tends to fall**, forming a gentle slope across the surface.
+            - This mirrors what we often see in real markets — and what Black-Scholes fails to produce.
+            
+            ---
+            
+            #### Why It Matters for Traders
+            - The Heston model improves **option pricing accuracy**, especially for OTM puts and longer-dated contracts.
+            - It provides more realistic **Greeks** (e.g., vega and gamma sensitivity) and better fits **volatility surfaces observed in markets**.
+            - Traders and quants use Heston surfaces for **model calibration**, **risk management**, and **volatility forecasting**.
+            
+            ---
+            
+            #### Comparing Models
+            
+            | Feature                  | Black-Scholes       | Heston Model           |
+            |--------------------------|---------------------|-------------------------|
+            | Volatility               | Constant            | Stochastic              |
+            | Smile/Skew               | Not Captured        | Modeled Naturally       |
+            | Realism                  | Low (Simplified)    | High (Market-like)      |
+            | Computational Speed      | Fast                | Slower but Accurate     |
+            
+            ---
+            
+            **Final Thought**:  
+            The Heston model represents a **middle ground between simplicity and realism**.  
+            It brings theoretical modeling closer to how volatility behaves in the real world — dynamic, asymmetric, and mean-reverting.  
+            For anyone serious about option pricing or volatility modeling, **understanding the Heston surface is essential**.
+            """)
+
+
 
 
 
