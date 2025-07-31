@@ -553,6 +553,7 @@ if tab == "Asset Snapshot":
             st.subheader("Volatility Data Table")
             st.dataframe(df)     # or st.table(df) if you prefer a static table
 
+
             import streamlit as st
             import numpy as np
             import matplotlib.pyplot as plt
@@ -560,60 +561,71 @@ if tab == "Asset Snapshot":
             
             st.set_page_config(page_title="Expected P&L Simulator", layout="centered")
             
-            # --- 1. Sidebar Sliders with Default Values and Safe Ranges ---
+            st.title("🧮 Expected P&L Simulator")
+            
+            # --- Safe Default Values ---
+            DEFAULT_WIN_PROB = 0.80
+            DEFAULT_WIN_EXP = 90.0
+            DEFAULT_LOSS_EXP = -200.0
+            
+            # --- Sidebar: Slider Inputs ---
             st.sidebar.header("Adjust Parameters")
             
-            default_win_prob = 0.80
-            default_win_exp = 90.0
-            default_loss_exp = -200.0
+            win_prob = st.sidebar.slider("Win Probability", min_value=0.0, max_value=1.0, value=DEFAULT_WIN_PROB, step=0.01)
+            win_exp = st.sidebar.slider("Win Expectation", min_value=0.0, max_value=200.0, value=DEFAULT_WIN_EXP, step=1.0)
+            loss_exp = st.sidebar.slider("Loss Expectation", min_value=-200.0, max_value=0.0, value=DEFAULT_LOSS_EXP, step=1.0)
             
-            win_prob = st.sidebar.slider("Win Probability", min_value=0.0, max_value=1.0, value=default_win_prob, step=0.01)
-            win_exp = st.sidebar.slider("Win Expectation", min_value=0.0, max_value=200.0, value=default_win_exp, step=1.0)
-            loss_exp = st.sidebar.slider("Loss Expectation", min_value=-200.0, max_value=0.0, value=default_loss_exp, step=1.0)
+            # --- Error-Handled Expectation Calculation ---
+            if math.isfinite(win_prob) and math.isfinite(win_exp) and math.isfinite(loss_exp):
+                loss_prob = 1.0 - win_prob
+                expected_pl = win_prob * win_exp + loss_prob * loss_exp
             
-            # --- 2. Error-Handled Calculation ---
-            try:
-                if not all(map(math.isfinite, [win_prob, win_exp, loss_exp])):
-                    st.error("Invalid slider input. Please ensure all values are finite.")
-                else:
-                    loss_prob = 1 - win_prob
-                    expected_pl = win_prob * win_exp + loss_prob * loss_exp
+                st.subheader("📊 Expectation Metrics")
+                st.markdown(f"- **Expected P/L:** {expected_pl:.2f}")
+                st.markdown(f"- **Win Probability:** {win_prob:.2f}")
+                st.markdown(f"- **Loss Probability:** {loss_prob:.2f}")
+                st.markdown(f"- **Win Amount:** {win_exp:.2f}")
+                st.markdown(f"- **Loss Amount:** {loss_exp:.2f}")
+            else:
+                st.error("⚠️ Invalid slider values. Please adjust.")
             
-                    st.subheader("Updated Expectations")
-                    st.markdown(f"- **Expected P/L:** {expected_pl:.2f}")
-                    st.markdown(f"- **Win Probability:** {win_prob:.2f}")
-                    st.markdown(f"- **Loss Probability:** {loss_prob:.2f}")
-                    st.markdown(f"- **Expected Win:** {win_exp:.2f}")
-                    st.markdown(f"- **Expected Loss:** {loss_exp:.2f}")
-            except Exception as e:
-                st.exception(f"Computation error: {e}")
+            # --- Run Simulation Button ---
+            if "run_simulation" not in st.session_state:
+                st.session_state.run_simulation = False
             
-            # --- 3. Button to Trigger Simulation to Avoid Lag ---
             if st.sidebar.button("Run Simulation"):
+                st.session_state.run_simulation = True
+            
+            # --- Safe Simulation with Caching and Overflow Check ---
+            if st.session_state.run_simulation:
+            
+                @st.cache_data(show_spinner=False)
+                def simulate_path(win_prob, win_exp, loss_exp, steps=252, max_pl=1e6):
+                    path = [0]
+                    for _ in range(steps):
+                        trade = win_exp if np.random.rand() < win_prob else loss_exp
+                        next_pl = path[-1] + trade
+                        # Cap runaway paths (e.g., infinite upward growth)
+                        if abs(next_pl) > max_pl:
+                            break
+                        path.append(next_pl)
+                    return path
+            
                 try:
-                    @st.cache_data
-                    def run_simulation(win_prob, win_exp, loss_exp, steps=252):
-                        path = [0]
-                        for _ in range(steps):
-                            trade = win_exp if np.random.binomial(1, win_prob) else loss_exp
-                            path.append(trade)
-                        return np.cumsum(path)
-            
-                    simulated_pl = run_simulation(win_prob, win_exp, loss_exp)
-            
+                    result = simulate_path(win_prob, win_exp, loss_exp)
                     fig, ax = plt.subplots()
-                    ax.plot(simulated_pl, label="Cumulative P/L")
-                    ax.axhline(0, color="gray", linestyle="--")
-                    ax.set_title("Simulated Trading P/L Path")
-                    ax.set_xlabel("Trading Days")
+                    ax.plot(result, label="Cumulative P/L", linewidth=2)
+                    ax.axhline(y=0, color="gray", linestyle="--")
+                    ax.set_title("📈 Simulated Trading Path (252 Days)")
+                    ax.set_xlabel("Day")
                     ax.set_ylabel("Cumulative P/L")
                     ax.legend()
                     st.pyplot(fig)
-            
                 except Exception as e:
-                    st.error(f"Simulation failed: {str(e)}")
+                    st.error(f"❌ Simulation failed: {e}")
 
 
+            
             
 
             
