@@ -874,22 +874,6 @@ if tab == "Asset Snapshot":
                  - As per **Prospect Theory**, investors **dislike losses more than they like gains**.  
                  - This behavioral trait causes **deep OTM puts to be overpriced**, leading to a skewed surface (higher IV for lower strikes).  
                  - Loss-averse institutions **overpay for insurance** — skewing demand and elevating tail prices.
-                
-                 ---
-                
-                 #### Regulatory Demand for Tail Protection  
-                 - Financial institutions (banks, insurers, pensions) **must hedge tail risk** to meet regulatory requirements like **Basel III**, **Solvency II**, or **FRTB**.  
-                 - **Tail hedges reduce capital charges** and improve solvency/funding ratios by shaping the loss distribution.  
-                 - This creates a **structural, persistent bid** for tail protection, further inflating implied vol in the left tail.
-                
-                 ---
-                
-                 **Final Remarks**:  
-                 The implied volatility surface is not just a pricing map — it’s a reflection of **fear, regulation, and systemic behavior**.  
-                 The steepness of the surface and the richness of the premium available are a result of:  
-                 - Investors' **fear of rare losses (loss aversion)**  
-                 - Institutions’ **need to survive under regulatory scrutiny**  
-                 - And the **persistent overpricing of crash insurance**, which option sellers aim to monetize — carefully.
                 """)
 
 
