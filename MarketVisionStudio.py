@@ -556,59 +556,15 @@ if tab == "Asset Snapshot":
             st.dataframe(df)     # or st.table(df) if you prefer a static table
 
 
-            import streamlit as st
-            import numpy as np
-            import matplotlib.pyplot as plt
-            import math
-            
-            st.set_page_config(page_title="Expected P&L Simulator", layout="centered")
-            
-            st.title("🧮 Expected P&L Simulator")
-            
-            # --- Sidebar Sliders ---
-            st.sidebar.header("Adjust Parameters")
-            
-            win_prob = st.sidebar.slider("Win Probability", min_value=0.0, max_value=1.0, value=0.80, step=0.01)
-            win_exp = st.sidebar.slider("Win Expectation", min_value=0.0, max_value=200.0, value=90.0, step=1.0)
-            loss_exp = st.sidebar.slider("Loss Expectation", min_value=-200.0, max_value=0.0, value=-200.0, step=1.0)
-            
-            # --- Safe Expectation Calculation ---
-            if math.isfinite(win_prob) and math.isfinite(win_exp) and math.isfinite(loss_exp):
-                loss_prob = 1.0 - win_prob
-                expected_pl = win_prob * win_exp + loss_prob * loss_exp
-            
-                st.subheader("📊 Expectation Metrics")
-                st.markdown(f"- **Expected P/L:** {expected_pl:.2f}")
-                st.markdown(f"- **Win Probability:** {win_prob:.2f}")
-                st.markdown(f"- **Loss Probability:** {loss_prob:.2f}")
-                st.markdown(f"- **Win Amount:** {win_exp:.2f}")
-                st.markdown(f"- **Loss Amount:** {loss_exp:.2f}")
-            else:
-                st.error("Invalid slider values. Please adjust.")
-            
-            # --- Button to Trigger Simulation ---
-            if st.button("Run Simulation"):
-                try:
-                    steps = 252
-                    result = [0]
-                    for _ in range(steps):
-                        trade = win_exp if np.random.rand() < win_prob else loss_exp
-                        result.append(result[-1] + trade)
-            
-                    # Prevent rendering if result is too large
-                    if len(result) > 10000 or any([not math.isfinite(x) for x in result]):
-                        st.error("Simulation result invalid or too large.")
-                    else:
-                        fig, ax = plt.subplots()
-                        ax.plot(result, label="Cumulative P/L", linewidth=2)
-                        ax.axhline(y=0, color="gray", linestyle="--")
-                        ax.set_title("📈 Simulated Trading Path (252 Days)")
-                        ax.set_xlabel("Day")
-                        ax.set_ylabel("Cumulative P/L")
-                        ax.legend()
-                        st.pyplot(fig)
-                except Exception as e:
-                    st.error(f"Simulation failed: {e}")
+            pages = {
+                "Volatility Surface": volatility_surface_panel,
+                "Expected P&L Simulator": pl_simulator_panel,
+            }
+
+            selected_page = st.sidebar.selectbox("Choose Page", list(pages.keys()))
+            pages[selected_page]()  # Call the corresponding function
+
+
 
 
 
