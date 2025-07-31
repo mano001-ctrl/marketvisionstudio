@@ -12,7 +12,6 @@ from plotly.subplots import make_subplots
 from fredapi import Fred
 import matplotlib.dates as mdates 
 from scipy.stats import gaussian_kde
-from pl_simulator import run as pl_simulator_panel
 
 sns.set_theme(style="whitegrid")
 
@@ -556,12 +555,7 @@ if tab == "Asset Snapshot":
             st.dataframe(df)     # or st.table(df) if you prefer a static table
 
 
-            pages = {
-                "Expected P&L Simulator": pl_simulator_panel,
-                           }
-
-            selected_page = st.sidebar.selectbox("Choose Page", list(pages.keys()))
-            pages[selected_page]()  # Call the corresponding function
+            
 
 
 
