@@ -679,21 +679,6 @@ if tab == "Asset Snapshot":
             - Black-Scholes assumes the world is smooth — but markets are jagged.
             - Market-implied volatility captures **trader fear, positioning, and structural demand**.
             - Trading strategies like **volatility arbitrage**, **delta-hedging**, and **tail-risk hedging** all rely on the **empirical surface**, not the flat Black-Scholes one.
-            
-            ---
-            
-            #### Practical Implication for Traders
-            - Using the Black-Scholes model in isolation can lead to **underestimating risk** and **mispricing options**.
-            - Most traders rely on **implied volatility surfaces from market data providers**, not theoretical models.
-            - **Sophisticated models** (e.g., SABR, Heston) attempt to fit the real-world surface better than Black-Scholes.
-            
-            ---
-            
-            **Final Remarks**:  
-            The Black-Scholes surface may look clean — but it’s an illusion.  
-            The **market-implied surface is messy, asymmetric, and reactive** — but it’s real.  
-            For anyone trading options seriously, **understanding this surface is critical** to navigating risk, pricing, and performance.
-            
             """)
 
 
