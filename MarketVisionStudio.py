@@ -12,6 +12,8 @@ from plotly.subplots import make_subplots
 from fredapi import Fred
 import matplotlib.dates as mdates 
 from scipy.stats import gaussian_kde
+from pl_simulator import run as pl_simulator_panel
+
 sns.set_theme(style="whitegrid")
 
 # --- Caching Yahoo Finance functions ---
