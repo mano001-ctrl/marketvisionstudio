@@ -861,6 +861,67 @@ if tab == "Asset Snapshot":
                  - Loss-averse institutions **overpay for insurance** — skewing demand and elevating tail prices.
                 """)
 
+                import streamlit as st
+                import numpy as np
+                import matplotlib.pyplot as plt
+                
+                # Simulated input data - replace with your actual DataFrame
+                # Example:
+                # trading_results = pd.read_csv("your_file.csv")
+                
+                # For demonstration, simulate a basic DataFrame
+                np.random.seed(42)
+                n = 1000
+                trading_results = {
+                    'P/L': np.random.normal(0, 50, size=n),
+                    'Win': np.random.binomial(1, 0.55, size=n),
+                    'Loss': np.random.binomial(1, 0.45, size=n)
+                }
+                trading_results = pd.DataFrame(trading_results)
+                
+                # --- Calculate initial metrics ---
+                expected_pl = float(np.mean(trading_results['P/L']))
+                expected_win_pl = float(np.mean(trading_results[trading_results['Win'] > 0]['P/L']))
+                expected_loss_pl = float(np.mean(trading_results[trading_results['Loss'] > 0]['P/L']))
+                probability_win = float(np.mean(trading_results['Win']))
+                
+                # --- Streamlit Sliders ---
+                st.sidebar.header("Adjust Parameters")
+                
+                win_prob = st.sidebar.slider("Win Probability", 0.0, 1.0, probability_win, step=0.01)
+                win_exp = st.sidebar.slider("Win Expectation", -200.0, 200.0, expected_win_pl, step=1.0)
+                loss_exp = st.sidebar.slider("Loss Expectation", -200.0, 200.0, expected_loss_pl, step=1.0)
+                
+                # --- Expectation Calculation ---
+                loss_prob = 1 - win_prob
+                expected_pl = win_prob * win_exp + loss_prob * loss_exp
+                
+                # --- Display Updated Results ---
+                st.subheader("Updated Results")
+                st.write(f"**Expected P/L:** {expected_pl:.2f}")
+                st.write(f"**Probability of Win:** {win_prob:.2f}")
+                st.write(f"**Probability of Loss:** {loss_prob:.2f}")
+                st.write(f"**Expected Win P/L:** {win_exp:.2f}")
+                st.write(f"**Expected Loss P/L:** {loss_exp:.2f}")
+                
+                # --- Simulate P/L Path ---
+                pl = [0]
+                for _ in range(252):
+                    outcome = np.random.binomial(1, win_prob)
+                    pl.append(win_exp if outcome > 0 else loss_exp)
+                
+                # --- Plot ---
+                st.subheader("Simulated P/L Over 252 Days")
+                fig, ax = plt.subplots()
+                ax.plot(np.cumsum(pl), label='Cumulative P/L')
+                ax.axhline(y=0, color='gray', linestyle='--')
+                ax.set_title("P/L Simulation")
+                ax.set_ylabel("Cumulative P/L")
+                ax.set_xlabel("Trading Day")
+                ax.legend()
+                st.pyplot(fig)
+
+
 
 
             
