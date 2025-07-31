@@ -563,19 +563,14 @@ if tab == "Asset Snapshot":
             
             st.title("🧮 Expected P&L Simulator")
             
-            # --- Safe Default Values ---
-            DEFAULT_WIN_PROB = 0.80
-            DEFAULT_WIN_EXP = 90.0
-            DEFAULT_LOSS_EXP = -200.0
-            
-            # --- Sidebar: Slider Inputs ---
+            # --- Sidebar Sliders ---
             st.sidebar.header("Adjust Parameters")
             
-            win_prob = st.sidebar.slider("Win Probability", min_value=0.0, max_value=1.0, value=DEFAULT_WIN_PROB, step=0.01)
-            win_exp = st.sidebar.slider("Win Expectation", min_value=0.0, max_value=200.0, value=DEFAULT_WIN_EXP, step=1.0)
-            loss_exp = st.sidebar.slider("Loss Expectation", min_value=-200.0, max_value=0.0, value=DEFAULT_LOSS_EXP, step=1.0)
+            win_prob = st.sidebar.slider("Win Probability", min_value=0.0, max_value=1.0, value=0.80, step=0.01)
+            win_exp = st.sidebar.slider("Win Expectation", min_value=0.0, max_value=200.0, value=90.0, step=1.0)
+            loss_exp = st.sidebar.slider("Loss Expectation", min_value=-200.0, max_value=0.0, value=-200.0, step=1.0)
             
-            # --- Error-Handled Expectation Calculation ---
+            # --- Safe Expectation Calculation ---
             if math.isfinite(win_prob) and math.isfinite(win_exp) and math.isfinite(loss_exp):
                 loss_prob = 1.0 - win_prob
                 expected_pl = win_prob * win_exp + loss_prob * loss_exp
@@ -587,42 +582,32 @@ if tab == "Asset Snapshot":
                 st.markdown(f"- **Win Amount:** {win_exp:.2f}")
                 st.markdown(f"- **Loss Amount:** {loss_exp:.2f}")
             else:
-                st.error("⚠️ Invalid slider values. Please adjust.")
+                st.error("Invalid slider values. Please adjust.")
             
-            # --- Run Simulation Button ---
-            if "run_simulation" not in st.session_state:
-                st.session_state.run_simulation = False
-            
-            if st.sidebar.button("Run Simulation"):
-                st.session_state.run_simulation = True
-            
-            # --- Safe Simulation with Caching and Overflow Check ---
-            if st.session_state.run_simulation:
-            
-                @st.cache_data(show_spinner=False)
-                def simulate_path(win_prob, win_exp, loss_exp, steps=252, max_pl=1e6):
-                    path = [0]
+            # --- Button to Trigger Simulation ---
+            if st.button("Run Simulation"):
+                try:
+                    steps = 252
+                    result = [0]
                     for _ in range(steps):
                         trade = win_exp if np.random.rand() < win_prob else loss_exp
-                        next_pl = path[-1] + trade
-                        # Cap runaway paths (e.g., infinite upward growth)
-                        if abs(next_pl) > max_pl:
-                            break
-                        path.append(next_pl)
-                    return path
+                        result.append(result[-1] + trade)
             
-                try:
-                    result = simulate_path(win_prob, win_exp, loss_exp)
-                    fig, ax = plt.subplots()
-                    ax.plot(result, label="Cumulative P/L", linewidth=2)
-                    ax.axhline(y=0, color="gray", linestyle="--")
-                    ax.set_title("📈 Simulated Trading Path (252 Days)")
-                    ax.set_xlabel("Day")
-                    ax.set_ylabel("Cumulative P/L")
-                    ax.legend()
-                    st.pyplot(fig)
+                    # Prevent rendering if result is too large
+                    if len(result) > 10000 or any([not math.isfinite(x) for x in result]):
+                        st.error("Simulation result invalid or too large.")
+                    else:
+                        fig, ax = plt.subplots()
+                        ax.plot(result, label="Cumulative P/L", linewidth=2)
+                        ax.axhline(y=0, color="gray", linestyle="--")
+                        ax.set_title("📈 Simulated Trading Path (252 Days)")
+                        ax.set_xlabel("Day")
+                        ax.set_ylabel("Cumulative P/L")
+                        ax.legend()
+                        st.pyplot(fig)
                 except Exception as e:
-                    st.error(f"❌ Simulation failed: {e}")
+                    st.error(f"Simulation failed: {e}")
+
 
 
             
