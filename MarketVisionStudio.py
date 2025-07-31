@@ -557,9 +557,8 @@ if tab == "Asset Snapshot":
 
 
             pages = {
-                "Volatility Surface": volatility_surface_panel,
                 "Expected P&L Simulator": pl_simulator_panel,
-            }
+                           }
 
             selected_page = st.sidebar.selectbox("Choose Page", list(pages.keys()))
             pages[selected_page]()  # Call the corresponding function
