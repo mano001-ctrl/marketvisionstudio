@@ -49,7 +49,6 @@ def run():
 
             # Force cleanup
             plt.close(fig)
-            gc.collect()
 
         except Exception as e:
             st.error(f"❌ Simulation failed: {e}")
