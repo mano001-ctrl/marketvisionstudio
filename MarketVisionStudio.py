@@ -556,62 +556,65 @@ if tab == "Asset Snapshot":
             import streamlit as st
             import numpy as np
             import matplotlib.pyplot as plt
+            import math
             
-            # Simulated input data - replace with your actual DataFrame
-            # Example:
-            # trading_results = pd.read_csv("your_file.csv")
+            st.set_page_config(page_title="Expected P&L Simulator", layout="centered")
             
-            # For demonstration, simulate a basic DataFrame
-            np.random.seed(42)
-            n = 1000
-            trading_results = {
-                'P/L': np.random.normal(0, 50, size=n),
-                'Win': np.random.binomial(1, 0.55, size=n),
-                'Loss': np.random.binomial(1, 0.45, size=n)
-            }
-            trading_results = pd.DataFrame(trading_results)
-            
-            # --- Calculate initial metrics ---
-            expected_pl = float(np.mean(trading_results['P/L']))
-            expected_win_pl = float(np.mean(trading_results[trading_results['Win'] > 0]['P/L']))
-            expected_loss_pl = float(np.mean(trading_results[trading_results['Loss'] > 0]['P/L']))
-            probability_win = float(np.mean(trading_results['Win']))
-            
-            # --- Streamlit Sliders ---
+            # --- 1. Sidebar Sliders with Default Values and Safe Ranges ---
             st.sidebar.header("Adjust Parameters")
             
-            win_prob = st.sidebar.slider("Win Probability", 0.0, 1.0, probability_win, step=0.01)
-            win_exp = st.sidebar.slider("Win Expectation", -200.0, 200.0, expected_win_pl, step=1.0)
-            loss_exp = st.sidebar.slider("Loss Expectation", -200.0, 200.0, expected_loss_pl, step=1.0)
+            default_win_prob = 0.80
+            default_win_exp = 90.0
+            default_loss_exp = -200.0
             
-            # --- Expectation Calculation ---
-            loss_prob = 1 - win_prob
-            expected_pl = win_prob * win_exp + loss_prob * loss_exp
+            win_prob = st.sidebar.slider("Win Probability", min_value=0.0, max_value=1.0, value=default_win_prob, step=0.01)
+            win_exp = st.sidebar.slider("Win Expectation", min_value=0.0, max_value=200.0, value=default_win_exp, step=1.0)
+            loss_exp = st.sidebar.slider("Loss Expectation", min_value=-200.0, max_value=0.0, value=default_loss_exp, step=1.0)
             
-            # --- Display Updated Results ---
-            st.subheader("Updated Results")
-            st.write(f"**Expected P/L:** {expected_pl:.2f}")
-            st.write(f"**Probability of Win:** {win_prob:.2f}")
-            st.write(f"**Probability of Loss:** {loss_prob:.2f}")
-            st.write(f"**Expected Win P/L:** {win_exp:.2f}")
-            st.write(f"**Expected Loss P/L:** {loss_exp:.2f}")
+            # --- 2. Error-Handled Calculation ---
+            try:
+                if not all(map(math.isfinite, [win_prob, win_exp, loss_exp])):
+                    st.error("Invalid slider input. Please ensure all values are finite.")
+                else:
+                    loss_prob = 1 - win_prob
+                    expected_pl = win_prob * win_exp + loss_prob * loss_exp
             
-            # --- Simulate P/L Path ---
-            pl = [0]
-            for _ in range(252):
-                outcome = np.random.binomial(1, win_prob)
-                pl.append(win_exp if outcome > 0 else loss_exp)
+                    st.subheader("Updated Expectations")
+                    st.markdown(f"- **Expected P/L:** {expected_pl:.2f}")
+                    st.markdown(f"- **Win Probability:** {win_prob:.2f}")
+                    st.markdown(f"- **Loss Probability:** {loss_prob:.2f}")
+                    st.markdown(f"- **Expected Win:** {win_exp:.2f}")
+                    st.markdown(f"- **Expected Loss:** {loss_exp:.2f}")
+            except Exception as e:
+                st.exception(f"Computation error: {e}")
             
-            # --- Plot ---
-            st.subheader("Simulated P/L Over 252 Days")
-            fig, ax = plt.subplots()
-            ax.plot(np.cumsum(pl), label='Cumulative P/L')
-            ax.axhline(y=0, color='gray', linestyle='--')
-            ax.set_title("P/L Simulation")
-            ax.set_ylabel("Cumulative P/L")
-            ax.set_xlabel("Trading Day")
-            ax.legend()
-            st.pyplot(fig)
+            # --- 3. Button to Trigger Simulation to Avoid Lag ---
+            if st.sidebar.button("Run Simulation"):
+                try:
+                    @st.cache_data
+                    def run_simulation(win_prob, win_exp, loss_exp, steps=252):
+                        path = [0]
+                        for _ in range(steps):
+                            trade = win_exp if np.random.binomial(1, win_prob) else loss_exp
+                            path.append(trade)
+                        return np.cumsum(path)
+            
+                    simulated_pl = run_simulation(win_prob, win_exp, loss_exp)
+            
+                    fig, ax = plt.subplots()
+                    ax.plot(simulated_pl, label="Cumulative P/L")
+                    ax.axhline(0, color="gray", linestyle="--")
+                    ax.set_title("Simulated Trading P/L Path")
+                    ax.set_xlabel("Trading Days")
+                    ax.set_ylabel("Cumulative P/L")
+                    ax.legend()
+                    st.pyplot(fig)
+            
+                except Exception as e:
+                    st.error(f"Simulation failed: {str(e)}")
+
+
+            
 
             
             st.markdown("---")
